@@ -1,0 +1,25 @@
+# Run imagenet experiments
+base_dir: &base_dir $NAS_HOME/train/gumi/evaluation/iccv19/final
+common:
+  --arch: resnet18
+  --dataset: imagenet
+  --dataset-dir: $NAS_HOME/datasets/ILSVRC2012
+  --lr: 1e-3
+  --gpu-id: 0
+  --perm: GRPS
+  --num-sort-iters: 10
+  --resume-from-best: true
+  --pretrained: true
+runs:
+  - prune:
+      -g: 2
+      --epochs: 30
+      --schedule: 10 20
+  - prune:
+      -g: 4
+      --epochs: 30
+      --schedule: 10 20
+  - prune:
+      -g: 8
+      --epochs: 30
+      --schedule: 10 20

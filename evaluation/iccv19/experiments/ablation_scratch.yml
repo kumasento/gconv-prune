@@ -1,0 +1,51 @@
+# Ablation study for the effect of training from scratch or not
+
+base_dir: &base_dir $NAS_HOME/train/gumi/evaluation/iccv19/ablation_scratch
+common:
+  --arch: preresnet164
+  --dataset-dir: $NAS_HOME/datasets
+  --lr: 0.1
+  --epochs: 164
+  --schedule: 81 122
+# --wd: 1e-4
+  --gpu-id: 0
+runs:
+# shuffle tasks
+  - scratch:
+      -g: 2
+      --dataset: cifar100
+      --ind: shuffle
+  - scratch:
+      -g: 4
+      --dataset: cifar100
+      --ind: shuffle
+  - scratch:
+      -g: 8
+      --dataset: cifar100
+      --ind: shuffle
+# random tasks
+  - scratch:
+      -g: 2
+      --dataset: cifar100
+      --ind: random
+  - scratch:
+      -g: 4
+      --dataset: cifar100
+      --ind: random
+  - scratch:
+      -g: 8
+      --dataset: cifar100
+      --ind: random
+# none tasks
+  - scratch:
+      -g: 2
+      --dataset: cifar100
+      --ind: none
+  - scratch:
+      -g: 4
+      --dataset: cifar100
+      --ind: none
+  - scratch:
+      -g: 8
+      --dataset: cifar100
+      --ind: none

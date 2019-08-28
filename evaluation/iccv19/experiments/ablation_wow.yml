@@ -1,0 +1,114 @@
+# Ablation study for the effect of training from scratch or not
+
+base_dir: &base_dir $NAS_HOME/train/gumi/evaluation/iccv19/ablation_wow
+common:
+  --arch: preresnet164
+  --dataset-dir: $NAS_HOME/datasets
+  --lr: 1e-3
+  --gpu-id: 0
+  --perm: GRPS
+  --num-sort-iters: 10
+  --resume-from-best: true
+runs:
+# - baseline:
+#     --dataset: cifar10
+#     --lr: 0.1
+#     --epochs: 164
+#     --schedule: 81 122
+#     --checkpoint: &RC10 preresnet164/cifar10/baseline/model_best.pth.tar
+# - prune:
+#     -g: 2
+#     --dataset: cifar10
+#     --lr: 0.1
+#     --epochs: 164
+#     --schedule: 81 122
+#     --resume: *RC10
+#     --no-weight: true
+# - prune:
+#     -g: 4
+#     --dataset: cifar10
+#     --lr: 0.1
+#     --epochs: 164
+#     --schedule: 81 122
+#     --resume: *RC10
+#     --no-weight: true
+# - prune:
+#     -g: 8
+#     --dataset: cifar10
+#     --lr: 0.1
+#     --epochs: 164
+#     --schedule: 81 122
+#     --resume: *RC10
+#     --no-weight: true
+  # - prune:
+  #     -g: 2
+  #     --dataset: cifar10
+  #     --lr: 0.01
+  #     --epochs: 60
+  #     --schedule: 30 45
+  #     --resume: *RC10
+  # - prune:
+  #     -g: 4
+  #     --dataset: cifar10
+  #     --lr: 0.01
+  #     --epochs: 60
+  #     --schedule: 30 45
+  #     --resume: *RC10
+  # - prune:
+  #     -g: 8
+  #     --dataset: cifar10
+  #     --lr: 0.01
+  #     --epochs: 60
+  #     --schedule: 30 45
+  #     --resume: *RC10
+  - baseline:
+      --dataset: cifar100
+      --lr: 0.1
+      --epochs: 164
+      --schedule: 81 122
+      --checkpoint: &RC100 preresnet164/cifar100/baseline/model_best.pth.tar
+  - prune:
+      -g: 2
+      --dataset: cifar100
+      --lr: 0.1
+      --epochs: 164
+      --schedule: 81 122
+      --resume: *RC100
+      --no-weight: true
+  - prune:
+      -g: 4
+      --dataset: cifar100
+      --lr: 0.1
+      --epochs: 164
+      --schedule: 81 122
+      --resume: *RC100
+      --no-weight: true
+  - prune:
+      -g: 8
+      --dataset: cifar100
+      --lr: 0.1
+      --epochs: 164
+      --schedule: 81 122
+      --resume: *RC100
+      --no-weight: true
+  # - prune:
+  #     -g: 2
+  #     --dataset: cifar100
+  #     --lr: 0.01
+  #     --epochs: 60
+  #     --schedule: 30 45
+  #     --resume: *RC100
+  # - prune:
+  #     -g: 4
+  #     --dataset: cifar100
+  #     --lr: 0.01
+  #     --epochs: 60
+  #     --schedule: 30 45
+  #     --resume: *RC100
+  # - prune:
+  #     -g: 8
+  #     --dataset: cifar100
+  #     --lr: 0.01
+  #     --epochs: 60
+  #     --schedule: 30 45
+  #     --resume: *RC100

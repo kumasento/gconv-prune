@@ -1,0 +1,107 @@
+--- # Run configuration for ResNet-164 evaluation on CIFAR-100
+base_dir: &base_dir $NAS_HOME/train/gumi/evaluation/iccv19/hyper
+common:
+  --arch: preresnet164
+  --dataset: cifar100
+  --dataset-dir: $NAS_HOME/datasets
+  --lr: 1e-3
+  --gpu-id: 0
+  --perm: GRPS
+  --num-sort-iters: 10
+  --resume-from-best: true
+runs:
+  - baseline:
+      --lr: 0.1
+      --epochs: 164
+      --schedule: 81 122
+      --checkpoint: &baseline preresnet164/cifar100/baseline
+  # try different weight decay values
+# - prune:
+#     -g: 4
+#     --lr: 1e-2
+#     --epochs: 60
+#     --schedule: 20 40
+#     --resume: *baseline
+# - prune:
+#     -g: 4
+#     --lr: 5e-3
+#     --epochs: 60
+#     --schedule: 20 40
+#     --resume: *baseline
+  - prune:
+      -g: 4
+      --lr: 5e-3
+      --epochs: 80
+      --schedule: 40 60
+      --resume: *baseline
+  - prune:
+      -g: 4
+      --lr: 5e-3
+      --epochs: 60
+      --schedule: 30 45
+      --resume: *baseline
+# - prune:
+#     -g: 4
+#     --lr: 1e-3
+#     --epochs: 60
+#     --schedule: 20 40
+#     --resume: *baseline
+# - prune:
+#     -g: 4
+#     --lr: 7.5e-3
+#     --epochs: 60
+#     --schedule: 20 40
+#     --resume: *baseline
+# - prune:
+#     -g: 4
+#     --lr: 2.5e-3
+#     --epochs: 60
+#     --schedule: 20 40
+#     --resume: *baseline
+  # Try cosine
+# - prune:
+#     -g: 4
+#     --lr: 1e-2
+#     --epochs: 60
+#     --lr-type: cosine
+#     --resume: *baseline
+# - prune:
+#     -g: 4
+#     --lr: 5e-3
+#     --epochs: 60
+#     --lr-type: cosine
+#     --resume: *baseline
+# - prune:
+#     -g: 4
+#     --lr: 5e-3
+#     --epochs: 100
+#     --lr-type: cosine
+#     --resume: *baseline
+# - prune:
+#     -g: 4
+#     --lr: 1e-3
+#     --epochs: 60
+#     --lr-type: cosine
+#     --resume: *baseline
+  # try different weight decay values
+# - prune:
+#     -g: 4
+#     --lr: 0.01
+#     --epochs: 60
+#     --schedule: 20 40
+#     --wd: 1e-4
+#     --resume: *baseline
+# - prune:
+#     -g: 4
+#     --lr: 0.01
+#     --epochs: 60
+#     --schedule: 20 40
+#     --wd: 1e-3
+#     --resume: *baseline
+# - prune:
+#     -g: 4
+#     --lr: 0.01
+#     --epochs: 60
+#     --schedule: 20 40
+#     --wd: 1e-5
+#     --resume: *baseline

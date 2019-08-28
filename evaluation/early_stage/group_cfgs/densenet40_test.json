@@ -1,0 +1,218 @@
+{
+  "module.dense1.0.conv": {
+    "id": 0,
+    "F": 12,
+    "C": 16,
+    "G": 2
+  },
+  "module.dense1.1.conv": {
+    "id": 1,
+    "F": 12,
+    "C": 28,
+    "G": 2
+  },
+  "module.dense1.2.conv": {
+    "id": 2,
+    "F": 12,
+    "C": 40,
+    "G": 2
+  },
+  "module.dense1.3.conv": {
+    "id": 3,
+    "F": 12,
+    "C": 52,
+    "G": 2
+  },
+  "module.dense1.4.conv": {
+    "id": 4,
+    "F": 12,
+    "C": 64,
+    "G": 2
+  },
+  "module.dense1.5.conv": {
+    "id": 5,
+    "F": 12,
+    "C": 76,
+    "G": 2
+  },
+  "module.dense1.6.conv": {
+    "id": 6,
+    "F": 12,
+    "C": 88,
+    "G": 2
+  },
+  "module.dense1.7.conv": {
+    "id": 7,
+    "F": 12,
+    "C": 100,
+    "G": 2
+  },
+  "module.dense1.8.conv": {
+    "id": 8,
+    "F": 12,
+    "C": 112,
+    "G": 2
+  },
+  "module.dense1.9.conv": {
+    "id": 9,
+    "F": 12,
+    "C": 124,
+    "G": 2
+  },
+  "module.dense1.10.conv": {
+    "id": 10,
+    "F": 12,
+    "C": 136,
+    "G": 2
+  },
+  "module.dense1.11.conv": {
+    "id": 11,
+    "F": 12,
+    "C": 148,
+    "G": 2
+  },
+  "module.dense2.0.conv": {
+    "id": 12,
+    "F": 12,
+    "C": 160,
+    "G": 2
+  },
+  "module.dense2.1.conv": {
+    "id": 13,
+    "F": 12,
+    "C": 172,
+    "G": 2
+  },
+  "module.dense2.2.conv": {
+    "id": 14,
+    "F": 12,
+    "C": 184,
+    "G": 2
+  },
+  "module.dense2.3.conv": {
+    "id": 15,
+    "F": 12,
+    "C": 196,
+    "G": 2
+  },
+  "module.dense2.4.conv": {
+    "id": 16,
+    "F": 12,
+    "C": 208,
+    "G": 2
+  },
+  "module.dense2.5.conv": {
+    "id": 17,
+    "F": 12,
+    "C": 220,
+    "G": 2
+  },
+  "module.dense2.6.conv": {
+    "id": 18,
+    "F": 12,
+    "C": 232,
+    "G": 2
+  },
+  "module.dense2.7.conv": {
+    "id": 19,
+    "F": 12,
+    "C": 244,
+    "G": 2
+  },
+  "module.dense2.8.conv": {
+    "id": 20,
+    "F": 12,
+    "C": 256,
+    "G": 2
+  },
+  "module.dense2.9.conv": {
+    "id": 21,
+    "F": 12,
+    "C": 268,
+    "G": 2
+  },
+  "module.dense2.10.conv": {
+    "id": 22,
+    "F": 12,
+    "C": 280,
+    "G": 2
+  },
+  "module.dense2.11.conv": {
+    "id": 23,
+    "F": 12,
+    "C": 292,
+    "G": 2
+  },
+  "module.dense3.0.conv": {
+    "id": 24,
+    "F": 12,
+    "C": 304,
+    "G": 2
+  },
+  "module.dense3.1.conv": {
+    "id": 25,
+    "F": 12,
+    "C": 316,
+    "G": 2
+  },
+  "module.dense3.2.conv": {
+    "id": 26,
+    "F": 12,
+    "C": 328,
+    "G": 2
+  },
+  "module.dense3.3.conv": {
+    "id": 27,
+    "F": 12,
+    "C": 340,
+    "G": 2
+  },
+  "module.dense3.4.conv": {
+    "id": 28,
+    "F": 12,
+    "C": 352,
+    "G": 2
+  },
+  "module.dense3.5.conv": {
+    "id": 29,
+    "F": 12,
+    "C": 364,
+    "G": 2
+  },
+  "module.dense3.6.conv": {
+    "id": 30,
+    "F": 12,
+    "C": 376,
+    "G": 2
+  },
+  "module.dense3.7.conv": {
+    "id": 31,
+    "F": 12,
+    "C": 388,
+    "G": 2
+  },
+  "module.dense3.8.conv": {
+    "id": 32,
+    "F": 12,
+    "C": 400,
+    "G": 2
+  },
+  "module.dense3.9.conv": {
+    "id": 33,
+    "F": 12,
+    "C": 412,
+    "G": 2
+  },
+  "module.dense3.10.conv": {
+    "id": 34,
+    "F": 12,
+    "C": 424,
+    "G": 2
+  },
+  "module.dense3.11.conv": {
+    "id": 35,
+    "F": 12,
+    "C": 436,
+    "G": 2
+  }
+}

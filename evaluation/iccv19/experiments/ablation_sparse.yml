@@ -1,0 +1,23 @@
+# Check how sparsified ResNet-18 will perform on ImageNet.
+base_dir: &base_dir $NAS_HOME/train/gumi/evaluation/iccv19/sparse
+common:
+  --arch: resnet18
+  --dataset: imagenet
+  --dataset-dir: $NAS_HOME/datasets/ILSVRC2012
+  --lr: 1e-3
+  --gpu-id: 0
+  --perm: GRPS
+  --num-sort-iters: 10
+  --resume-from-best: true
+runs:
+# - prune:
+#     -g: 2
+#     --epochs: 30
+#     --schedule: 10 20
+#     --resume: resnet18.pth.tar
+  - prune:
+      -g: 2
+      --lr: 5e-4
+      --epochs: 30
+      --schedule: 10 20
+      --resume: resnet18.pth.tar

@@ -1,0 +1,35 @@
+--- # Run configuration for ResNet-110 evaluation on CIFAR-10 and CIFAR-100
+base_dir: &base_dir $NAS_HOME/train/gumi/evaluation/iccv19/final
+common:
+  --arch: resnet110
+  --dataset: cifar10
+  --dataset-dir: $NAS_HOME/datasets
+  --lr: 1e-3
+  --gpu-id: 0
+  --perm: GRPS
+  --num-sort-iters: 10
+runs:
+  - baseline:
+      --lr: 0.1
+      --epochs: 164
+      --schedule: 81 122
+      --checkpoint: &baseline resnet110/cifar10/baseline/model_best.pth.tar
+  - prune:
+      -g: 2
+      --lr: 0.01
+      --epochs: 60
+      --schedule: 30 45
+      --resume: *baseline
+  - prune:
+      -g: 4
+      --lr: 0.01
+      --epochs: 60
+      --schedule: 30 45
+      --resume: *baseline
+  - prune:
+      -g: 8
+      --lr: 0.01
+      --epochs: 60
+      --schedule: 30 45
+      --resume: *baseline
+

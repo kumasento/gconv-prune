@@ -1,0 +1,30 @@
+--- # Run configuration for DenseNet-40 evaluation on CIFAR-10
+base_dir: &base_dir $NAS_HOME/train/gumi/evaluation/iccv19/final
+common:
+  --arch: densenet40
+  --dataset: cifar10
+  --dataset-dir: $NAS_HOME/datasets
+  --lr: 1e-3
+  --gpu-id: 5
+  --perm: GRPS
+  --num-sort-iters: 10
+  --resume-from-best: true
+runs:
+  - baseline:
+      --lr: 0.1
+      --epochs: 300
+      --schedule: 150 225
+      --checkpoint: &baseline densenet40/cifar10/baseline
+  - prune:
+      -g: 2
+      --lr: 0.01
+      --epochs: 150
+      --schedule: 75 125
+      --resume: *baseline
+  - prune:
+      -g: 4
+      --lr: 0.01
+      --epochs: 150
+      --schedule: 75 125
+      --resume: *baseline
+

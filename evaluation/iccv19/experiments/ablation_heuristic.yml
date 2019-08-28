@@ -1,0 +1,119 @@
+# Ablation study for the effect of the heuristic algorithm
+# sort or not sort
+
+base_dir: &base_dir $NAS_HOME/train/gumi/evaluation/iccv19/ablation_heuristic
+common:
+  --arch: resnet110
+  --dataset-dir: $NAS_HOME/datasets
+  --lr: 1e-3
+  --gpu-id: 5
+runs:
+  - baseline:
+      --lr: 0.1
+      --dataset: cifar100
+      --epochs: 164
+      --schedule: 81 122
+      --checkpoint: &baseline_c100 resnet110/cifar100/baseline
+  - prune:
+      -g: 2
+      --lr: 0.01
+      --dataset: cifar100
+      --epochs: 60
+      --schedule: 30 45
+      --resume: *baseline_c100
+  - prune:
+      -g: 4
+      --lr: 0.01
+      --dataset: cifar100
+      --epochs: 60
+      --schedule: 30 45
+      --resume: *baseline_c100
+  - prune:
+      -g: 8
+      --lr: 0.01
+      --dataset: cifar100
+      --epochs: 60
+      --schedule: 30 45
+      --resume: *baseline_c100
+  #  - prune:
+  #      -g: 2
+  #      --lr: 0.01
+  #      --dataset: cifar100
+  #      --epochs: 60
+  #      --schedule: 30 45
+  #      --resume: *baseline_c100
+  #      --perm: GRPS
+  #      --num-sort-iters: 10
+  #  - prune:
+  #      -g: 4
+  #      --lr: 0.01
+  #      --dataset: cifar100
+  #      --epochs: 60
+  #      --schedule: 30 45
+  #      --resume: *baseline_c100
+  #      --perm: GRPS
+  #      --num-sort-iters: 10
+  #  - prune:
+  #      -g: 8
+  #      --lr: 0.01
+  #      --dataset: cifar100
+  #      --epochs: 60
+  #      --schedule: 30 45
+  #      --resume: *baseline_c100
+  #      --perm: GRPS
+  #      --num-sort-iters: 10
+  # C10
+  - baseline:
+      --lr: 0.1
+      --dataset: cifar10
+      --epochs: 164
+      --schedule: 81 122
+      --checkpoint: &baseline_c10 resnet110/cifar10/baseline
+  - prune:
+      -g: 2
+      --lr: 0.01
+      --dataset: cifar10
+      --epochs: 60
+      --schedule: 30 45
+      --resume: *baseline_c10
+  - prune:
+      -g: 4
+      --lr: 0.01
+      --dataset: cifar10
+      --epochs: 60
+      --schedule: 30 45
+      --resume: *baseline_c10
+  - prune:
+      -g: 8
+      --lr: 0.01
+      --dataset: cifar10
+      --epochs: 60
+      --schedule: 30 45
+      --resume: *baseline_c10
+  #  - prune:
+  #      -g: 2
+  #      --lr: 0.01
+  #      --dataset: cifar10
+  #      --epochs: 60
+  #      --schedule: 30 45
+  #      --resume: *baseline_c10
+  #      --perm: GRPS
+  #      --num-sort-iters: 10
+  #  - prune:
+  #      -g: 4
+  #      --lr: 0.01
+  #      --dataset: cifar10
+  #      --epochs: 60
+  #      --schedule: 30 45
+  #      --resume: *baseline_c10
+  #      --perm: GRPS
+  #      --num-sort-iters: 10
+  #  - prune:
+  #      -g: 8
+  #      --lr: 0.01
+  #      --dataset: cifar10
+  #      --epochs: 60
+  #      --schedule: 30 45
+  #      --resume: *baseline_c10
+  #      --perm: GRPS
+  #      --num-sort-iters: 10

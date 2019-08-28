@@ -1,0 +1,48 @@
+--- # Run configuration for ResNet-164 evaluation on CIFAR-100
+base_dir: &base_dir $NAS_HOME/train/gumi/evaluation/iccv19/final
+common:
+  --arch: preresnet164
+  --dataset: cifar100
+  --dataset-dir: $NAS_HOME/datasets
+  --lr: 1e-3
+  --gpu-id: 0
+  --perm: GRPS
+  --num-sort-iters: 10
+  --resume-from-best: true
+runs:
+  - baseline:
+      --lr: 0.1
+      --epochs: 164
+      --schedule: 81 122
+      --checkpoint: &baseline preresnet164/cifar100/baseline
+# - prune:
+#     -g: 2
+#     --lr: 0.01
+#     --epochs: 60
+#     --schedule: 30 45
+#     --resume: *baseline
+  - prune:
+      -g: 4
+      --lr: 0.01
+      --epochs: 60
+      --schedule: 30 45
+      --resume: *baseline
+  - prune:
+      -g: 8
+      --lr: 0.01
+      --epochs: 60
+      --schedule: 30 45
+      --resume: *baseline
+# - prune:
+#     --mcpg: 64
+#     --lr: 0.01
+#     --epochs: 60
+#     --schedule: 30 45
+#     --resume: *baseline
+  - prune:
+      --mcpg: 32 
+      --lr: 0.01
+      --epochs: 60
+      --schedule: 30 45
+      --resume: *baseline
+

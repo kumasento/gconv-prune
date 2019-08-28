@@ -1,0 +1,992 @@
+{
+  "module.layer1.0.conv1": {
+    "id": 0,
+    "F": 16,
+    "C": 16,
+    "G": 2
+  },
+  "module.layer1.0.conv2": {
+    "id": 1,
+    "F": 16,
+    "C": 16,
+    "G": 2
+  },
+  "module.layer1.0.conv3": {
+    "id": 2,
+    "F": 64,
+    "C": 16,
+    "G": 2
+  },
+  "module.layer1.0.downsample.0": {
+    "id": 3,
+    "F": 64,
+    "C": 16,
+    "G": 2
+  },
+  "module.layer1.1.conv1": {
+    "id": 4,
+    "F": 16,
+    "C": 64,
+    "G": 2
+  },
+  "module.layer1.1.conv2": {
+    "id": 5,
+    "F": 16,
+    "C": 16,
+    "G": 2
+  },
+  "module.layer1.1.conv3": {
+    "id": 6,
+    "F": 64,
+    "C": 16,
+    "G": 2
+  },
+  "module.layer1.2.conv1": {
+    "id": 7,
+    "F": 16,
+    "C": 64,
+    "G": 2
+  },
+  "module.layer1.2.conv2": {
+    "id": 8,
+    "F": 16,
+    "C": 16,
+    "G": 2
+  },
+  "module.layer1.2.conv3": {
+    "id": 9,
+    "F": 64,
+    "C": 16,
+    "G": 2
+  },
+  "module.layer1.3.conv1": {
+    "id": 10,
+    "F": 16,
+    "C": 64,
+    "G": 2
+  },
+  "module.layer1.3.conv2": {
+    "id": 11,
+    "F": 16,
+    "C": 16,
+    "G": 2
+  },
+  "module.layer1.3.conv3": {
+    "id": 12,
+    "F": 64,
+    "C": 16,
+    "G": 2
+  },
+  "module.layer1.4.conv1": {
+    "id": 13,
+    "F": 16,
+    "C": 64,
+    "G": 2
+  },
+  "module.layer1.4.conv2": {
+    "id": 14,
+    "F": 16,
+    "C": 16,
+    "G": 2
+  },
+  "module.layer1.4.conv3": {
+    "id": 15,
+    "F": 64,
+    "C": 16,
+    "G": 2
+  },
+  "module.layer1.5.conv1": {
+    "id": 16,
+    "F": 16,
+    "C": 64,
+    "G": 2
+  },
+  "module.layer1.5.conv2": {
+    "id": 17,
+    "F": 16,
+    "C": 16,
+    "G": 2
+  },
+  "module.layer1.5.conv3": {
+    "id": 18,
+    "F": 64,
+    "C": 16,
+    "G": 2
+  },
+  "module.layer1.6.conv1": {
+    "id": 19,
+    "F": 16,
+    "C": 64,
+    "G": 2
+  },
+  "module.layer1.6.conv2": {
+    "id": 20,
+    "F": 16,
+    "C": 16,
+    "G": 2
+  },
+  "module.layer1.6.conv3": {
+    "id": 21,
+    "F": 64,
+    "C": 16,
+    "G": 2
+  },
+  "module.layer1.7.conv1": {
+    "id": 22,
+    "F": 16,
+    "C": 64,
+    "G": 2
+  },
+  "module.layer1.7.conv2": {
+    "id": 23,
+    "F": 16,
+    "C": 16,
+    "G": 2
+  },
+  "module.layer1.7.conv3": {
+    "id": 24,
+    "F": 64,
+    "C": 16,
+    "G": 2
+  },
+  "module.layer1.8.conv1": {
+    "id": 25,
+    "F": 16,
+    "C": 64,
+    "G": 2
+  },
+  "module.layer1.8.conv2": {
+    "id": 26,
+    "F": 16,
+    "C": 16,
+    "G": 2
+  },
+  "module.layer1.8.conv3": {
+    "id": 27,
+    "F": 64,
+    "C": 16,
+    "G": 2
+  },
+  "module.layer1.9.conv1": {
+    "id": 28,
+    "F": 16,
+    "C": 64,
+    "G": 2
+  },
+  "module.layer1.9.conv2": {
+    "id": 29,
+    "F": 16,
+    "C": 16,
+    "G": 2
+  },
+  "module.layer1.9.conv3": {
+    "id": 30,
+    "F": 64,
+    "C": 16,
+    "G": 2
+  },
+  "module.layer1.10.conv1": {
+    "id": 31,
+    "F": 16,
+    "C": 64,
+    "G": 2
+  },
+  "module.layer1.10.conv2": {
+    "id": 32,
+    "F": 16,
+    "C": 16,
+    "G": 2
+  },
+  "module.layer1.10.conv3": {
+    "id": 33,
+    "F": 64,
+    "C": 16,
+    "G": 2
+  },
+  "module.layer1.11.conv1": {
+    "id": 34,
+    "F": 16,
+    "C": 64,
+    "G": 2
+  },
+  "module.layer1.11.conv2": {
+    "id": 35,
+    "F": 16,
+    "C": 16,
+    "G": 2
+  },
+  "module.layer1.11.conv3": {
+    "id": 36,
+    "F": 64,
+    "C": 16,
+    "G": 2
+  },
+  "module.layer1.12.conv1": {
+    "id": 37,
+    "F": 16,
+    "C": 64,
+    "G": 2
+  },
+  "module.layer1.12.conv2": {
+    "id": 38,
+    "F": 16,
+    "C": 16,
+    "G": 2
+  },
+  "module.layer1.12.conv3": {
+    "id": 39,
+    "F": 64,
+    "C": 16,
+    "G": 2
+  },
+  "module.layer1.13.conv1": {
+    "id": 40,
+    "F": 16,
+    "C": 64,
+    "G": 2
+  },
+  "module.layer1.13.conv2": {
+    "id": 41,
+    "F": 16,
+    "C": 16,
+    "G": 2
+  },
+  "module.layer1.13.conv3": {
+    "id": 42,
+    "F": 64,
+    "C": 16,
+    "G": 2
+  },
+  "module.layer1.14.conv1": {
+    "id": 43,
+    "F": 16,
+    "C": 64,
+    "G": 2
+  },
+  "module.layer1.14.conv2": {
+    "id": 44,
+    "F": 16,
+    "C": 16,
+    "G": 2
+  },
+  "module.layer1.14.conv3": {
+    "id": 45,
+    "F": 64,
+    "C": 16,
+    "G": 2
+  },
+  "module.layer1.15.conv1": {
+    "id": 46,
+    "F": 16,
+    "C": 64,
+    "G": 2
+  },
+  "module.layer1.15.conv2": {
+    "id": 47,
+    "F": 16,
+    "C": 16,
+    "G": 2
+  },
+  "module.layer1.15.conv3": {
+    "id": 48,
+    "F": 64,
+    "C": 16,
+    "G": 2
+  },
+  "module.layer1.16.conv1": {
+    "id": 49,
+    "F": 16,
+    "C": 64,
+    "G": 2
+  },
+  "module.layer1.16.conv2": {
+    "id": 50,
+    "F": 16,
+    "C": 16,
+    "G": 2
+  },
+  "module.layer1.16.conv3": {
+    "id": 51,
+    "F": 64,
+    "C": 16,
+    "G": 2
+  },
+  "module.layer1.17.conv1": {
+    "id": 52,
+    "F": 16,
+    "C": 64,
+    "G": 2
+  },
+  "module.layer1.17.conv2": {
+    "id": 53,
+    "F": 16,
+    "C": 16,
+    "G": 2
+  },
+  "module.layer1.17.conv3": {
+    "id": 54,
+    "F": 64,
+    "C": 16,
+    "G": 2
+  },
+  "module.layer2.0.conv1": {
+    "id": 55,
+    "F": 32,
+    "C": 64,
+    "G": 2
+  },
+  "module.layer2.0.conv2": {
+    "id": 56,
+    "F": 32,
+    "C": 32,
+    "G": 2
+  },
+  "module.layer2.0.conv3": {
+    "id": 57,
+    "F": 128,
+    "C": 32,
+    "G": 2
+  },
+  "module.layer2.0.downsample.0": {
+    "id": 58,
+    "F": 128,
+    "C": 64,
+    "G": 2
+  },
+  "module.layer2.1.conv1": {
+    "id": 59,
+    "F": 32,
+    "C": 128,
+    "G": 2
+  },
+  "module.layer2.1.conv2": {
+    "id": 60,
+    "F": 32,
+    "C": 32,
+    "G": 2
+  },
+  "module.layer2.1.conv3": {
+    "id": 61,
+    "F": 128,
+    "C": 32,
+    "G": 2
+  },
+  "module.layer2.2.conv1": {
+    "id": 62,
+    "F": 32,
+    "C": 128,
+    "G": 2
+  },
+  "module.layer2.2.conv2": {
+    "id": 63,
+    "F": 32,
+    "C": 32,
+    "G": 2
+  },
+  "module.layer2.2.conv3": {
+    "id": 64,
+    "F": 128,
+    "C": 32,
+    "G": 2
+  },
+  "module.layer2.3.conv1": {
+    "id": 65,
+    "F": 32,
+    "C": 128,
+    "G": 2
+  },
+  "module.layer2.3.conv2": {
+    "id": 66,
+    "F": 32,
+    "C": 32,
+    "G": 2
+  },
+  "module.layer2.3.conv3": {
+    "id": 67,
+    "F": 128,
+    "C": 32,
+    "G": 2
+  },
+  "module.layer2.4.conv1": {
+    "id": 68,
+    "F": 32,
+    "C": 128,
+    "G": 2
+  },
+  "module.layer2.4.conv2": {
+    "id": 69,
+    "F": 32,
+    "C": 32,
+    "G": 2
+  },
+  "module.layer2.4.conv3": {
+    "id": 70,
+    "F": 128,
+    "C": 32,
+    "G": 2
+  },
+  "module.layer2.5.conv1": {
+    "id": 71,
+    "F": 32,
+    "C": 128,
+    "G": 2
+  },
+  "module.layer2.5.conv2": {
+    "id": 72,
+    "F": 32,
+    "C": 32,
+    "G": 2
+  },
+  "module.layer2.5.conv3": {
+    "id": 73,
+    "F": 128,
+    "C": 32,
+    "G": 2
+  },
+  "module.layer2.6.conv1": {
+    "id": 74,
+    "F": 32,
+    "C": 128,
+    "G": 2
+  },
+  "module.layer2.6.conv2": {
+    "id": 75,
+    "F": 32,
+    "C": 32,
+    "G": 2
+  },
+  "module.layer2.6.conv3": {
+    "id": 76,
+    "F": 128,
+    "C": 32,
+    "G": 2
+  },
+  "module.layer2.7.conv1": {
+    "id": 77,
+    "F": 32,
+    "C": 128,
+    "G": 2
+  },
+  "module.layer2.7.conv2": {
+    "id": 78,
+    "F": 32,
+    "C": 32,
+    "G": 2
+  },
+  "module.layer2.7.conv3": {
+    "id": 79,
+    "F": 128,
+    "C": 32,
+    "G": 2
+  },
+  "module.layer2.8.conv1": {
+    "id": 80,
+    "F": 32,
+    "C": 128,
+    "G": 2
+  },
+  "module.layer2.8.conv2": {
+    "id": 81,
+    "F": 32,
+    "C": 32,
+    "G": 2
+  },
+  "module.layer2.8.conv3": {
+    "id": 82,
+    "F": 128,
+    "C": 32,
+    "G": 2
+  },
+  "module.layer2.9.conv1": {
+    "id": 83,
+    "F": 32,
+    "C": 128,
+    "G": 2
+  },
+  "module.layer2.9.conv2": {
+    "id": 84,
+    "F": 32,
+    "C": 32,
+    "G": 2
+  },
+  "module.layer2.9.conv3": {
+    "id": 85,
+    "F": 128,
+    "C": 32,
+    "G": 2
+  },
+  "module.layer2.10.conv1": {
+    "id": 86,
+    "F": 32,
+    "C": 128,
+    "G": 2
+  },
+  "module.layer2.10.conv2": {
+    "id": 87,
+    "F": 32,
+    "C": 32,
+    "G": 2
+  },
+  "module.layer2.10.conv3": {
+    "id": 88,
+    "F": 128,
+    "C": 32,
+    "G": 2
+  },
+  "module.layer2.11.conv1": {
+    "id": 89,
+    "F": 32,
+    "C": 128,
+    "G": 2
+  },
+  "module.layer2.11.conv2": {
+    "id": 90,
+    "F": 32,
+    "C": 32,
+    "G": 2
+  },
+  "module.layer2.11.conv3": {
+    "id": 91,
+    "F": 128,
+    "C": 32,
+    "G": 2
+  },
+  "module.layer2.12.conv1": {
+    "id": 92,
+    "F": 32,
+    "C": 128,
+    "G": 2
+  },
+  "module.layer2.12.conv2": {
+    "id": 93,
+    "F": 32,
+    "C": 32,
+    "G": 2
+  },
+  "module.layer2.12.conv3": {
+    "id": 94,
+    "F": 128,
+    "C": 32,
+    "G": 2
+  },
+  "module.layer2.13.conv1": {
+    "id": 95,
+    "F": 32,
+    "C": 128,
+    "G": 2
+  },
+  "module.layer2.13.conv2": {
+    "id": 96,
+    "F": 32,
+    "C": 32,
+    "G": 2
+  },
+  "module.layer2.13.conv3": {
+    "id": 97,
+    "F": 128,
+    "C": 32,
+    "G": 2
+  },
+  "module.layer2.14.conv1": {
+    "id": 98,
+    "F": 32,
+    "C": 128,
+    "G": 2
+  },
+  "module.layer2.14.conv2": {
+    "id": 99,
+    "F": 32,
+    "C": 32,
+    "G": 2
+  },
+  "module.layer2.14.conv3": {
+    "id": 100,
+    "F": 128,
+    "C": 32,
+    "G": 2
+  },
+  "module.layer2.15.conv1": {
+    "id": 101,
+    "F": 32,
+    "C": 128,
+    "G": 2
+  },
+  "module.layer2.15.conv2": {
+    "id": 102,
+    "F": 32,
+    "C": 32,
+    "G": 2
+  },
+  "module.layer2.15.conv3": {
+    "id": 103,
+    "F": 128,
+    "C": 32,
+    "G": 2
+  },
+  "module.layer2.16.conv1": {
+    "id": 104,
+    "F": 32,
+    "C": 128,
+    "G": 2
+  },
+  "module.layer2.16.conv2": {
+    "id": 105,
+    "F": 32,
+    "C": 32,
+    "G": 2
+  },
+  "module.layer2.16.conv3": {
+    "id": 106,
+    "F": 128,
+    "C": 32,
+    "G": 2
+  },
+  "module.layer2.17.conv1": {
+    "id": 107,
+    "F": 32,
+    "C": 128,
+    "G": 2
+  },
+  "module.layer2.17.conv2": {
+    "id": 108,
+    "F": 32,
+    "C": 32,
+    "G": 2
+  },
+  "module.layer2.17.conv3": {
+    "id": 109,
+    "F": 128,
+    "C": 32,
+    "G": 2
+  },
+  "module.layer3.0.conv1": {
+    "id": 110,
+    "F": 64,
+    "C": 128,
+    "G": 2
+  },
+  "module.layer3.0.conv2": {
+    "id": 111,
+    "F": 64,
+    "C": 64,
+    "G": 2
+  },
+  "module.layer3.0.conv3": {
+    "id": 112,
+    "F": 256,
+    "C": 64,
+    "G": 2
+  },
+  "module.layer3.0.downsample.0": {
+    "id": 113,
+    "F": 256,
+    "C": 128,
+    "G": 2
+  },
+  "module.layer3.1.conv1": {
+    "id": 114,
+    "F": 64,
+    "C": 256,
+    "G": 4
+  },
+  "module.layer3.1.conv2": {
+    "id": 115,
+    "F": 64,
+    "C": 64,
+    "G": 4
+  },
+  "module.layer3.1.conv3": {
+    "id": 116,
+    "F": 256,
+    "C": 64,
+    "G": 4
+  },
+  "module.layer3.2.conv1": {
+    "id": 117,
+    "F": 64,
+    "C": 256,
+    "G": 4
+  },
+  "module.layer3.2.conv2": {
+    "id": 118,
+    "F": 64,
+    "C": 64,
+    "G": 4
+  },
+  "module.layer3.2.conv3": {
+    "id": 119,
+    "F": 256,
+    "C": 64,
+    "G": 4
+  },
+  "module.layer3.3.conv1": {
+    "id": 120,
+    "F": 64,
+    "C": 256,
+    "G": 4
+  },
+  "module.layer3.3.conv2": {
+    "id": 121,
+    "F": 64,
+    "C": 64,
+    "G": 4
+  },
+  "module.layer3.3.conv3": {
+    "id": 122,
+    "F": 256,
+    "C": 64,
+    "G": 4
+  },
+  "module.layer3.4.conv1": {
+    "id": 123,
+    "F": 64,
+    "C": 256,
+    "G": 4
+  },
+  "module.layer3.4.conv2": {
+    "id": 124,
+    "F": 64,
+    "C": 64,
+    "G": 4
+  },
+  "module.layer3.4.conv3": {
+    "id": 125,
+    "F": 256,
+    "C": 64,
+    "G": 4
+  },
+  "module.layer3.5.conv1": {
+    "id": 126,
+    "F": 64,
+    "C": 256,
+    "G": 4
+  },
+  "module.layer3.5.conv2": {
+    "id": 127,
+    "F": 64,
+    "C": 64,
+    "G": 4
+  },
+  "module.layer3.5.conv3": {
+    "id": 128,
+    "F": 256,
+    "C": 64,
+    "G": 4
+  },
+  "module.layer3.6.conv1": {
+    "id": 129,
+    "F": 64,
+    "C": 256,
+    "G": 4
+  },
+  "module.layer3.6.conv2": {
+    "id": 130,
+    "F": 64,
+    "C": 64,
+    "G": 4
+  },
+  "module.layer3.6.conv3": {
+    "id": 131,
+    "F": 256,
+    "C": 64,
+    "G": 4
+  },
+  "module.layer3.7.conv1": {
+    "id": 132,
+    "F": 64,
+    "C": 256,
+    "G": 4
+  },
+  "module.layer3.7.conv2": {
+    "id": 133,
+    "F": 64,
+    "C": 64,
+    "G": 4
+  },
+  "module.layer3.7.conv3": {
+    "id": 134,
+    "F": 256,
+    "C": 64,
+    "G": 4
+  },
+  "module.layer3.8.conv1": {
+    "id": 135,
+    "F": 64,
+    "C": 256,
+    "G": 4
+  },
+  "module.layer3.8.conv2": {
+    "id": 136,
+    "F": 64,
+    "C": 64,
+    "G": 4
+  },
+  "module.layer3.8.conv3": {
+    "id": 137,
+    "F": 256,
+    "C": 64,
+    "G": 4
+  },
+  "module.layer3.9.conv1": {
+    "id": 138,
+    "F": 64,
+    "C": 256,
+    "G": 4
+  },
+  "module.layer3.9.conv2": {
+    "id": 139,
+    "F": 64,
+    "C": 64,
+    "G": 4
+  },
+  "module.layer3.9.conv3": {
+    "id": 140,
+    "F": 256,
+    "C": 64,
+    "G": 4
+  },
+  "module.layer3.10.conv1": {
+    "id": 141,
+    "F": 64,
+    "C": 256,
+    "G": 4
+  },
+  "module.layer3.10.conv2": {
+    "id": 142,
+    "F": 64,
+    "C": 64,
+    "G": 4
+  },
+  "module.layer3.10.conv3": {
+    "id": 143,
+    "F": 256,
+    "C": 64,
+    "G": 4
+  },
+  "module.layer3.11.conv1": {
+    "id": 144,
+    "F": 64,
+    "C": 256,
+    "G": 4
+  },
+  "module.layer3.11.conv2": {
+    "id": 145,
+    "F": 64,
+    "C": 64,
+    "G": 4
+  },
+  "module.layer3.11.conv3": {
+    "id": 146,
+    "F": 256,
+    "C": 64,
+    "G": 4
+  },
+  "module.layer3.12.conv1": {
+    "id": 147,
+    "F": 64,
+    "C": 256,
+    "G": 4
+  },
+  "module.layer3.12.conv2": {
+    "id": 148,
+    "F": 64,
+    "C": 64,
+    "G": 4
+  },
+  "module.layer3.12.conv3": {
+    "id": 149,
+    "F": 256,
+    "C": 64,
+    "G": 4
+  },
+  "module.layer3.13.conv1": {
+    "id": 150,
+    "F": 64,
+    "C": 256,
+    "G": 4
+  },
+  "module.layer3.13.conv2": {
+    "id": 151,
+    "F": 64,
+    "C": 64,
+    "G": 4
+  },
+  "module.layer3.13.conv3": {
+    "id": 152,
+    "F": 256,
+    "C": 64,
+    "G": 4
+  },
+  "module.layer3.14.conv1": {
+    "id": 153,
+    "F": 64,
+    "C": 256,
+    "G": 4
+  },
+  "module.layer3.14.conv2": {
+    "id": 154,
+    "F": 64,
+    "C": 64,
+    "G": 4
+  },
+  "module.layer3.14.conv3": {
+    "id": 155,
+    "F": 256,
+    "C": 64,
+    "G": 4
+  },
+  "module.layer3.15.conv1": {
+    "id": 156,
+    "F": 64,
+    "C": 256,
+    "G": 4
+  },
+  "module.layer3.15.conv2": {
+    "id": 157,
+    "F": 64,
+    "C": 64,
+    "G": 4
+  },
+  "module.layer3.15.conv3": {
+    "id": 158,
+    "F": 256,
+    "C": 64,
+    "G": 4
+  },
+  "module.layer3.16.conv1": {
+    "id": 159,
+    "F": 64,
+    "C": 256,
+    "G": 4
+  },
+  "module.layer3.16.conv2": {
+    "id": 160,
+    "F": 64,
+    "C": 64,
+    "G": 4
+  },
+  "module.layer3.16.conv3": {
+    "id": 161,
+    "F": 256,
+    "C": 64,
+    "G": 4
+  },
+  "module.layer3.17.conv1": {
+    "id": 162,
+    "F": 64,
+    "C": 256,
+    "G": 4
+  },
+  "module.layer3.17.conv2": {
+    "id": 163,
+    "F": 64,
+    "C": 64,
+    "G": 4
+  },
+  "module.layer3.17.conv3": {
+    "id": 164,
+    "F": 256,
+    "C": 64,
+    "G": 4
+  }
+}

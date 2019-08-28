@@ -1,0 +1,3 @@
+# Operators
+
+This module contains all new operators implemented. Specifically, we've got two implementation of GConv: [`GroupConv2d`](group_conv2d.py) and [`MaskConv2d`](mask_conv2d.py). `GroupConv2d` performs GConv based on its original form, i.e., explicitly passing `groups` parameter to `torch.nn.conv2d` and permuting input and output channels. `MaskConv2d`, on the other hand, still uses the original convolution API but masks weights at specific positions to imitate GConv.

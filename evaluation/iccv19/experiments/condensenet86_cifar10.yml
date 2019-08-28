@@ -1,0 +1,59 @@
+--- # Run configuration for CondenseNet-86 evaluation on CIFAR-100
+base_dir: &base_dir $NAS_HOME/train/gumi/evaluation/iccv19/final
+common:
+  --arch: condensenet86
+  --dataset: cifar10
+  --dataset-dir: $NAS_HOME/datasets
+  --lr: 1e-2
+  --gpu-id: 4
+  --perm: GRPS
+  --num-sort-iters: 10
+  --resume-from-best: true
+runs:
+  - baseline:
+      --lr: 0.1
+      --lr-type: cosine
+      --epochs: 300
+      --checkpoint: &baseline condensenet86/cifar10/baseline
+  - prune:
+      -g: 2
+      --lr: 5e-3
+      --epochs: 100
+      --schedule: 50 75
+      --resume: *baseline
+  - prune:
+      -g: 4
+      --lr: 5e-3
+      --epochs: 100
+      --schedule: 50 75
+      --resume: *baseline
+# - prune:
+#     --mcpg: 64
+#     --lr: 0.01
+#     --epochs: 100
+#     --schedule: 50 75
+#     --resume: *baseline
+# - prune:
+#     --mcpg: 32
+#     --lr: 0.01
+#     --epochs: 100
+#     --schedule: 50 75
+#     --resume: *baseline
+# - prune:
+#     --mcpg: 16
+#     --lr: 0.01
+#     --epochs: 100
+#     --schedule: 50 75
+#     --resume: *baseline
+# - prune:
+#     --mcpg: 8
+#     --lr: 0.01
+#     --epochs: 100
+#     --schedule: 50 75
+#     --resume: *baseline
+# - prune:
+#     --mcpg: 4
+#     --lr: 0.01
+#     --epochs: 100
+#     --schedule: 50 75
+#     --resume: *baseline
