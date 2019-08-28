@@ -174,3 +174,5 @@ compares the performance between our approach and the result from Network Slimmi
 # Each group should have at least 8 channels.
 ./run_gopt_comparison_preresnet164_with_network_slimming.sh 0 8 1.44 100
 ```
+
+Explored models and configurations can be found at [here](https://gumi-models.s3.amazonaws.com/preresnet164_gopt.tar.gz).
