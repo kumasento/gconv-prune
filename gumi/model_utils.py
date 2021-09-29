@@ -11,7 +11,6 @@ import torch
 import torch.nn as nn
 from thop import profile
 
-from gumi.group_utils import is_gsp_satisfied
 from gumi.ops import (GroupConv2d, MaskConv2d, MMPointwiseConv2d,
                       SparseGroupConv2d)
 
@@ -164,8 +163,6 @@ def get_model_num_params(model):
 
 def get_model_num_ops(model, input_size):
     """ Return FLOPS. """
-    num_ops = 0
-
     flops, _ = profile(model,
                        input_size=input_size,
                        custom_ops={

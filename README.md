@@ -1,5 +1,7 @@
 # GConv Prune
 
+[![Python Package using Conda](https://github.com/kumasento/gconv-prune/actions/workflows/python-package-conda.yml/badge.svg)](https://github.com/kumasento/gconv-prune/actions/workflows/python-package-conda.yml)
+
 This is the codebase for paper [Efficient Structured Pruning and Architecture Searching for Group Convolution](https://arxiv.org/abs/1811.09341v3) that will appear at the [ICCV'19 NEUARCH workshop](https://neuralarchitects.org/).
 
 - [GConv Prune](#gconv-prune)
