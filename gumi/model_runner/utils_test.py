@@ -17,7 +17,6 @@ IMAGENET_DIR = os.path.expandvars("$NAS_HOME/datasets/ILSVRC2012")
 
 class TestModelRunnerUtils(unittest.TestCase):
     """ """
-
     def test_get_dataset(self):
         """ get_dataset """
 
@@ -35,7 +34,9 @@ class TestModelRunnerUtils(unittest.TestCase):
         dataset = utils.get_dataset("cifar10", dataset_dir=CIFAR_DIR)
         self.assertIsInstance(dataset, datasets.CIFAR10)
         self.assertFalse(dataset.train)
-        dataset = utils.get_dataset("cifar10", dataset_dir=CIFAR_DIR, is_training=True)
+        dataset = utils.get_dataset("cifar10",
+                                    dataset_dir=CIFAR_DIR,
+                                    is_training=True)
         self.assertTrue(dataset.train)
 
         dataset = utils.get_dataset("cifar100", dataset_dir=CIFAR_DIR)
@@ -47,10 +48,13 @@ class TestModelRunnerUtils(unittest.TestCase):
 
     def test_get_data_loader(self):
         """ get_data_loader """
+        if not os.path.isdir(CIFAR_DIR):
+            return
         batch_size = 128
-        train_loader = utils.get_data_loader(
-            "cifar10", CIFAR_DIR, batch_size, is_training=True
-        )
+        train_loader = utils.get_data_loader("cifar10",
+                                             CIFAR_DIR,
+                                             batch_size,
+                                             is_training=True)
         test_loader = utils.get_data_loader("cifar10", CIFAR_DIR, batch_size)
         self.assertIsInstance(train_loader, data.DataLoader)
         self.assertIsInstance(test_loader, data.DataLoader)
@@ -66,9 +70,10 @@ class TestModelRunnerUtils(unittest.TestCase):
 
         model = utils.load_model("resnet50", "imagenet", use_cuda=False)
         self.assertIsInstance(model, nn.Module)
-        model = utils.load_model(
-            "resnet50", "imagenet", use_cuda=False, pretrained=True
-        )
+        model = utils.load_model("resnet50",
+                                 "imagenet",
+                                 use_cuda=False,
+                                 pretrained=True)
         self.assertIsInstance(model, nn.Module)
 
 
