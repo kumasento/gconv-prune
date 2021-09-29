@@ -5,7 +5,7 @@
 [![Total alerts](https://img.shields.io/lgtm/alerts/g/kumasento/gconv-prune.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/kumasento/gconv-prune/alerts/)
 [![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/kumasento/gconv-prune.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/kumasento/gconv-prune/context:python)
 
-This is the codebase for paper [Efficient Structured Pruning and Architecture Searching for Group Convolution](https://arxiv.org/abs/1811.09341v3) that will appear at the [ICCV'19 NEUARCH workshop](https://neuralarchitects.org/).
+This is the codebase for paper [Efficient Structured Pruning and Architecture Searching for Group Convolution](https://arxiv.org/abs/1811.09341v4) that has appeared at the [ICCV'19 NEUARCH workshop](https://neuralarchitects.org/).
 
 ![Overall workflow](https://user-images.githubusercontent.com/8768839/135343849-eca7f27a-1181-4381-af4f-b8e3b6fdfe5b.png)
 
