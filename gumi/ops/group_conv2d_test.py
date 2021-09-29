@@ -2,10 +2,9 @@
 
 import unittest
 
+import numpy as np
 import torch
 import torch.nn as nn
-import numpy as np
-
 from gumi.ops.group_conv2d import GroupConv2d
 
 
@@ -31,7 +30,13 @@ class TestGroupConv2d(unittest.TestCase):
         self.assertTrue(torch.allclose(gconv.ind_in, torch.tensor([0, 1])))
         self.assertTrue(torch.allclose(gconv.ind_out, torch.tensor([0, 1])))
         # choose a different index mapping
-        gconv = GroupConv2d(2, 2, 3, ind_in=[1, 0], ind_out=[1, 0], padding=1, groups=1)
+        gconv = GroupConv2d(2,
+                            2,
+                            3,
+                            ind_in=[1, 0],
+                            ind_out=[1, 0],
+                            padding=1,
+                            groups=1)
         self.assertTrue(torch.allclose(gconv.ind_in, torch.tensor([1, 0])))
         self.assertTrue(torch.allclose(gconv.ind_out, torch.tensor([1, 0])))
 
@@ -66,18 +71,20 @@ class TestGroupConv2d(unittest.TestCase):
         x_split = x.split(1, dim=1)
         result = group_conv2d.forward(x)
         golden = torch.cat(
-            [conv2d_a.forward(x_split[0]), conv2d_b.forward(x_split[1])], dim=1
-        )
+            [conv2d_a.forward(x_split[0]),
+             conv2d_b.forward(x_split[1])],
+            dim=1)
 
         self.assertTrue(torch.allclose(result, golden))
 
     def test_forward_cuda(self):
+        if not torch.cuda.is_available():
+            return
         x = torch.randn((1, 32, 4, 4))
 
         group_conv2d = GroupConv2d(32, 32, 3, padding=1, groups=4)
         golden = group_conv2d.forward(x)  # CPU forward
         result = group_conv2d.cuda().forward(x.cuda())  # GPU forward
-
         self.assertTrue(torch.allclose(result, golden.cuda(), rtol=1e-02))
 
     def test_forward_with_indices(self):
@@ -86,7 +93,12 @@ class TestGroupConv2d(unittest.TestCase):
         x = torch.randn((1, 4, 4, 4))
         ind_out = [3, 0, 1, 2]
 
-        group_conv2d = GroupConv2d(4, 4, 3, padding=1, groups=1, ind_out=ind_out)
+        group_conv2d = GroupConv2d(4,
+                                   4,
+                                   3,
+                                   padding=1,
+                                   groups=1,
+                                   ind_out=ind_out)
         conv2d = nn.Conv2d(4, 4, 3, padding=1, bias=False)
 
         weight = torch.randn((4, 4, 3, 3))
@@ -115,8 +127,10 @@ class TestGroupConv2d(unittest.TestCase):
         self.assertFalse(GroupConv2d.groupable(16, 32, groups=3))
         self.assertTrue(GroupConv2d.groupable(16, 32, groups=4))
 
-        self.assertFalse(GroupConv2d.groupable(16, 32, max_channels_per_group=64))
-        self.assertTrue(GroupConv2d.groupable(16, 32, max_channels_per_group=32))
+        self.assertFalse(
+            GroupConv2d.groupable(16, 32, max_channels_per_group=64))
+        self.assertTrue(
+            GroupConv2d.groupable(16, 32, max_channels_per_group=32))
 
 
 if __name__ == "__main__":
