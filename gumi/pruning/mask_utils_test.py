@@ -4,13 +4,11 @@ import unittest
 
 import numpy as np
 import torch
-
 from gumi.pruning import mask_utils
 
 
 class MaskUtilsTest(unittest.TestCase):
     """ Find the mask for pruning. """
-
     def test_get_criterion(self):
         """ Test get criterion """
         with self.assertRaises(AssertionError):
@@ -40,7 +38,8 @@ class MaskUtilsTest(unittest.TestCase):
 
         C = C.numpy()
         self.assertTrue(
-            np.allclose(mask_utils.get_sort_perm(C), np.argsort(C.sum(axis=1))))
+            np.allclose(mask_utils.get_sort_perm(C),
+                        np.argsort(C.sum(axis=1))))
         self.assertTrue(
             np.allclose(mask_utils.get_sort_perm(C, dim=1),
                         np.argsort(C.sum(axis=0))))
@@ -84,7 +83,8 @@ class MaskUtilsTest(unittest.TestCase):
         self.assertTrue((ind_in[16:] < 16).all())
         self.assertTrue((ind_out[:8] >= 8).all())
         self.assertTrue((ind_out[8:] < 8).all())
-        self.assertTrue((CS[8:, 16:] > 100).all())  # the tensor has been sorted
+        self.assertTrue(
+            (CS[8:, 16:] > 100).all())  # the tensor has been sorted
 
     def test_create_mbm_mask(self):
         """ Check whether get_mbm_mask returns correct results."""
@@ -107,6 +107,7 @@ class MaskUtilsTest(unittest.TestCase):
 
     def test_run_mbm(self):
         """ GRPS N_S=10"""
+        torch.manual_seed(0)
         ten = torch.randn((32, 32, 3, 3))
         ten[0:8, 0:8] += 100.0
         ten[8:16, 8:16] += 100.0
@@ -116,10 +117,12 @@ class MaskUtilsTest(unittest.TestCase):
         G = 4
         row_ind, col_ind, cost = mask_utils.run_mbm(ten, G)
         crit = ten[row_ind, col_ind, :, :].norm(dim=(2, 3))
+        print(crit)
         # criterion should be around 300 in this case
         self.assertTrue(((crit - 300).abs() < 3).all())
 
     def test_run_mbm_with_perm(self):
+        torch.manual_seed(0)
         W = torch.randn((16, 32, 3, 3))
         W[::2, ::2] += 100.0
 
@@ -131,7 +134,9 @@ class MaskUtilsTest(unittest.TestCase):
         gnd_in2, gnd_out2, cost2 = mask_utils.run_mbm(W, G, perm='SORT')
         self.assertTrue(cost1 > cost2)
 
-        C = mask_utils._get_numpy(mask_utils.get_criterion(W))
+        C = mask_utils.get_criterion(W)
+        C /= torch.norm(C)
+        C = mask_utils._get_numpy(C)
         sum1 = 0
         for ind_in, ind_out in zip(gnd_in1, gnd_out1):
             sum1 += (C[ind_out, :])[:, ind_in].sum()

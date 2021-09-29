@@ -4,9 +4,8 @@ Author: Ruizhe Zhao
 Date: 13/02/2019
 """
 
-import copy
-import torch
 import numpy as np
+import torch
 from scipy.optimize import linear_sum_assignment
 
 __all__ = ['create_mbm_mask']
@@ -160,12 +159,17 @@ def permute_criterion(C, method=None, G=None, num_iters=1):
 
 def run_mbm_core(W, G, perm='GRPS', num_iters=10, crit_type=None):
     """ Core MBM algorithm. """
+
+    # Get the criterion matrix C. If the input matrix is 2-D, just use
+    # that as C; otherwise, calculate C by `get_criterion`.
     if len(W.shape) == 2:
         C = W
     else:
         C = get_criterion(W, crit_type=crit_type)
 
+    # Normalise C.
     C /= torch.norm(C)
+
     orig_crit = C.clone().detach().cpu()
     # permute the criterion by given permutation method
     crit, ind_in, ind_out = permute_criterion(C,

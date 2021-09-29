@@ -13,14 +13,13 @@ __all__ = ['MaskConv2d']
 
 class MaskConv2d(nn.Module):
     """ The module of weight masked convolution.
-  
-  Attributes:
-    conv2d(nn.Module): inner convolution
-    mask(Tensor)
-    G(int): number of groups
-    fake_mask(bool): whether the mask will be ineffective or not
-  """
 
+    Attributes:
+        conv2d(nn.Module): inner convolution
+        mask(Tensor)
+        G(int): number of groups
+        fake_mask(bool): whether the mask will be ineffective or not
+    """
     def __init__(self,
                  in_channels,
                  out_channels,
