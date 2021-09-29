@@ -6,19 +6,22 @@ import numpy as np
 import torch
 
 from gumi import model_utils
-from gumi.group_utils import (get_group_allocation, get_group_parameters,
-                              is_gsp_satisfied)
+from gumi.group_utils import (
+    get_group_allocation,
+    get_group_parameters,
+    is_gsp_satisfied,
+)
 from gumi.ops import GroupConv2d, MaskConv2d
 
 
 class TestModelUtils(unittest.TestCase):
     def test_get_weight_parameter(self):
         """ Check whether parameters can be get from Module. """
-        self.assertIsNotNone(
-            model_utils.get_weight_parameter(MaskConv2d(32, 32, 3)))
+        self.assertIsNotNone(model_utils.get_weight_parameter(MaskConv2d(32, 32, 3)))
 
         weight_groups = model_utils.get_weight_parameter(
-            GroupConv2d(32, 64, 3, groups=2))
+            GroupConv2d(32, 64, 3, groups=2)
+        )
         self.assertIsNotNone(weight_groups)
         self.assertIsInstance(weight_groups, torch.Tensor)
         self.assertEqual(weight_groups.shape[0], 64)
@@ -96,9 +99,8 @@ class TestModelUtils(unittest.TestCase):
         self.assertTrue(np.allclose(wg[:4, :, :, :], W[:8:2, :4:2, :, :]))
         self.assertTrue(np.allclose(wg[4:, :, :, :], W[1:8:2, 1:4:2, :, :]))
         self.assertTrue(np.allclose(ind_in, np.array([0, 2, 1, 3])))
-        self.assertTrue(
-            np.allclose(ind_out, np.array([0, 4, 1, 5, 2, 6, 3, 7])))
+        self.assertTrue(np.allclose(ind_out, np.array([0, 4, 1, 5, 2, 6, 3, 7])))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

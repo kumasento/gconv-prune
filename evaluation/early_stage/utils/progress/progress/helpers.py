@@ -15,8 +15,8 @@
 from __future__ import print_function
 
 
-HIDE_CURSOR = '\x1b[?25l'
-SHOW_CURSOR = '\x1b[?25h'
+HIDE_CURSOR = "\x1b[?25l"
+SHOW_CURSOR = "\x1b[?25h"
 
 
 class WriteMixin(object):
@@ -30,21 +30,21 @@ class WriteMixin(object):
 
         if self.file.isatty():
             if self.hide_cursor:
-                print(HIDE_CURSOR, end='', file=self.file)
-            print(self.message, end='', file=self.file)
+                print(HIDE_CURSOR, end="", file=self.file)
+            print(self.message, end="", file=self.file)
             self.file.flush()
 
     def write(self, s):
         if self.file.isatty():
-            b = '\b' * self._width
+            b = "\b" * self._width
             c = s.ljust(self._width)
-            print(b + c, end='', file=self.file)
+            print(b + c, end="", file=self.file)
             self._width = max(self._width, len(s))
             self.file.flush()
 
     def finish(self):
         if self.file.isatty() and self.hide_cursor:
-            print(SHOW_CURSOR, end='', file=self.file)
+            print(SHOW_CURSOR, end="", file=self.file)
 
 
 class WritelnMixin(object):
@@ -56,23 +56,23 @@ class WritelnMixin(object):
             self.message = message
 
         if self.file.isatty() and self.hide_cursor:
-            print(HIDE_CURSOR, end='', file=self.file)
+            print(HIDE_CURSOR, end="", file=self.file)
 
     def clearln(self):
         if self.file.isatty():
-            print('\r\x1b[K', end='', file=self.file)
+            print("\r\x1b[K", end="", file=self.file)
 
     def writeln(self, line):
         if self.file.isatty():
             self.clearln()
-            print(line, end='', file=self.file)
+            print(line, end="", file=self.file)
             self.file.flush()
 
     def finish(self):
         if self.file.isatty():
             print(file=self.file)
             if self.hide_cursor:
-                print(SHOW_CURSOR, end='', file=self.file)
+                print(SHOW_CURSOR, end="", file=self.file)
 
 
 from signal import signal, SIGINT

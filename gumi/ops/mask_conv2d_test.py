@@ -11,7 +11,6 @@ from gumi.ops.mask_conv2d import MaskConv2d
 
 
 class TestNet(nn.Module):
-
     def __init__(self):
         super().__init__()
 
@@ -34,7 +33,6 @@ def find_param(model, name):
 
 
 class TestMaskConv2d(unittest.TestCase):
-
     def test_ctor(self):
         # now mask is all ONE
         mask_conv2d = MaskConv2d(32, 32, 3, bias=False)
@@ -75,7 +73,7 @@ class TestMaskConv2d(unittest.TestCase):
         model = TestNet()
         model.train()
 
-        before = find_param(model, 'conv.mask')
+        before = find_param(model, "conv.mask")
 
         optimizer = optim.SGD(model.parameters(), lr=0.1)
 
@@ -89,9 +87,9 @@ class TestMaskConv2d(unittest.TestCase):
         # run one step of optimization
         optimizer.step()
 
-        after = find_param(model, 'conv.mask')
+        after = find_param(model, "conv.mask")
         self.assertTrue(torch.allclose(before, after))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

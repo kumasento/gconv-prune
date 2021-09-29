@@ -11,6 +11,7 @@ import itertools
 import functools
 from subprocess import Popen, PIPE  # launching pruning processes
 import logging
+
 logging.getLogger().setLevel(logging.DEBUG)
 
 import numpy as np
@@ -26,19 +27,19 @@ import torchvision.datasets as datasets
 from parser import create_parser
 from group_exporter import GroupExporter
 
-parser = create_parser(prog='Export from a mask based model to a grouped one.')
+parser = create_parser(prog="Export from a mask based model to a grouped one.")
 args = parser.parse_args()
 
 # CUDA
-os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu_id
+os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu_id
 use_cuda = torch.cuda.is_available()
 cudnn.benchmark = True
 
 
 def main():
-  exporter = GroupExporter(args)
-  exporter.export()
+    exporter = GroupExporter(args)
+    exporter.export()
 
 
-if __name__ == '__main__':
-  main()
+if __name__ == "__main__":
+    main()

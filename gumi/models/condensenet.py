@@ -10,17 +10,13 @@ import torch.nn as nn
 import torch.nn.functional as F
 from gumi.model_utils import conv1x1, conv3x3, is_conv2d
 
-__all__ = ['CondenseNet', 'condensenet86']
+__all__ = ["CondenseNet", "condensenet86"]
 
 
 class Bottleneck(nn.Module):
     """ Bottleneck module used in CondenseNet. """
-    def __init__(self,
-                 in_channels,
-                 expansion=4,
-                 growth_rate=12,
-                 drop_rate=0,
-                 **kwargs):
+
+    def __init__(self, in_channels, expansion=4, growth_rate=12, drop_rate=0, **kwargs):
         """ CTOR.
         Args:
           in_channels(int)
@@ -66,6 +62,7 @@ class Bottleneck(nn.Module):
 
 class DenseBlock(nn.Sequential):
     """ Handles the logic of creating Dense layers """
+
     def __init__(self, num_layers, in_channels, growth_rate, **kwargs):
         """ CTOR.
         Args:
@@ -75,14 +72,15 @@ class DenseBlock(nn.Sequential):
         super().__init__()
 
         for i in range(num_layers):
-            layer = Bottleneck(in_channels + i * growth_rate,
-                               growth_rate=growth_rate,
-                               **kwargs)
-            self.add_module('denselayer_%d' % (i + 1), layer)
+            layer = Bottleneck(
+                in_channels + i * growth_rate, growth_rate=growth_rate, **kwargs
+            )
+            self.add_module("denselayer_%d" % (i + 1), layer)
 
 
 class Transition(nn.Module):
     """ CondenseNet's transition, no convolution involved """
+
     def __init__(self, in_channels):
         super().__init__()
         self.pool = nn.AvgPool2d(kernel_size=2, stride=2)
@@ -94,6 +92,7 @@ class Transition(nn.Module):
 
 class CondenseNet(nn.Module):
     """ Main function to initialise CondenseNet. """
+
     def __init__(self, stages, growth, num_classes=10, **kwargs):
         """ CTOR.
         Args:
@@ -118,13 +117,16 @@ class CondenseNet(nn.Module):
         # Dense-block 1 (224x224)
         # NOTE: this block will not be turned into a GConv
         self.features.add_module(
-            'init_conv',
-            nn.Conv2d(3,
-                      self.num_features,
-                      kernel_size=3,
-                      stride=self.init_stride,
-                      padding=1,
-                      bias=False))
+            "init_conv",
+            nn.Conv2d(
+                3,
+                self.num_features,
+                kernel_size=3,
+                stride=self.init_stride,
+                padding=1,
+                bias=False,
+            ),
+        )
 
         for i in range(len(self.stages)):
             # Dense-block i
@@ -136,9 +138,7 @@ class CondenseNet(nn.Module):
         # initialize
         for m in self.modules():
             if is_conv2d(m):
-                nn.init.kaiming_normal_(m.weight,
-                                        mode='fan_out',
-                                        nonlinearity='relu')
+                nn.init.kaiming_normal_(m.weight, mode="fan_out", nonlinearity="relu")
             elif isinstance(m, nn.BatchNorm2d):
                 m.weight.data.fill_(1)
                 m.bias.data.zero_()
@@ -147,23 +147,24 @@ class CondenseNet(nn.Module):
 
     def add_block(self, i, **kwargs):
         # Check if ith is the last one
-        last = (i == len(self.stages) - 1)
-        block = DenseBlock(num_layers=self.stages[i],
-                           in_channels=self.num_features,
-                           growth_rate=self.growth[i],
-                           **kwargs)
+        last = i == len(self.stages) - 1
+        block = DenseBlock(
+            num_layers=self.stages[i],
+            in_channels=self.num_features,
+            growth_rate=self.growth[i],
+            **kwargs
+        )
 
-        self.features.add_module('denseblock_%d' % (i + 1), block)
+        self.features.add_module("denseblock_%d" % (i + 1), block)
 
         self.num_features += self.stages[i] * self.growth[i]
         if not last:
             trans = Transition(in_channels=self.num_features)
-            self.features.add_module('transition_%d' % (i + 1), trans)
+            self.features.add_module("transition_%d" % (i + 1), trans)
         else:
-            self.features.add_module('norm_last',
-                                     nn.BatchNorm2d(self.num_features))
-            self.features.add_module('relu_last', nn.ReLU(inplace=True))
-            self.features.add_module('pool_last', nn.AvgPool2d(self.pool_size))
+            self.features.add_module("norm_last", nn.BatchNorm2d(self.num_features))
+            self.features.add_module("relu_last", nn.ReLU(inplace=True))
+            self.features.add_module("pool_last", nn.AvgPool2d(self.pool_size))
 
     def forward(self, x, progress=None):
         # if progress:

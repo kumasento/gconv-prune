@@ -46,13 +46,9 @@ def test_get_group_allocation_block_diagonal():
 
 
 def test_get_group_allocation_scattered():
-    mask = torch.tensor([
-        [0, 1, 0, 1],
-        [1, 0, 1, 0],
-        [0, 1, 0, 1],
-        [1, 0, 1, 0],
-    ],
-                        dtype=torch.bool)
+    mask = torch.tensor(
+        [[0, 1, 0, 1], [1, 0, 1, 0], [0, 1, 0, 1], [1, 0, 1, 0],], dtype=torch.bool
+    )
 
     gaf, gac = get_group_allocation(mask, G=2)
     assert gaf is not None

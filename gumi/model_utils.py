@@ -11,10 +11,9 @@ import torch
 import torch.nn as nn
 from thop import profile
 
-from gumi.ops import (GroupConv2d, MaskConv2d, MMPointwiseConv2d,
-                      SparseGroupConv2d)
+from gumi.ops import GroupConv2d, MaskConv2d, MMPointwiseConv2d, SparseGroupConv2d
 
-__all__ = ['conv3x3', 'conv1x1', 'is_conv2d']
+__all__ = ["conv3x3", "conv1x1", "is_conv2d"]
 
 
 def _get_indices(indices, channels, groups=None):
@@ -38,10 +37,10 @@ def _get_indices(indices, channels, groups=None):
         return indices
 
     if isinstance(indices, str):
-        if indices == 'random':
+        if indices == "random":
             return np.random.permutation(channels).tolist()
 
-        if indices == 'trans':
+        if indices == "trans":
             assert isinstance(groups, int) and groups > 0
 
             perm = np.arange(channels)
@@ -49,11 +48,9 @@ def _get_indices(indices, channels, groups=None):
             perm = perm.T.reshape(channels)
             return perm.tolist()
 
-        raise ValueError(
-            'Indices pattern {} cannot be recognised.'.format(indices))
+        raise ValueError("Indices pattern {} cannot be recognised.".format(indices))
 
-    raise TypeError('Cannot recognise type of indices: {}'.format(
-        type(indices)))
+    raise TypeError("Cannot recognise type of indices: {}".format(type(indices)))
 
 
 def get_perm_indices(ind_type, in_channels, out_channels, groups=0):
@@ -62,78 +59,77 @@ def get_perm_indices(ind_type, in_channels, out_channels, groups=0):
       ind_type is a string that specifies how we create indices.
     """
     assert isinstance(ind_type, str)
-    assert ind_type in ['shuffle', 'random', 'none']
+    assert ind_type in ["shuffle", "random", "none"]
 
-    if ind_type == 'shuffle':
+    if ind_type == "shuffle":
         ind_in = np.arange(in_channels).tolist()
-        ind_out = _get_indices('trans', out_channels, groups=groups)
-    elif ind_type == 'random':
-        ind_in = _get_indices('random', in_channels)
-        ind_out = _get_indices('random', out_channels)
-    elif ind_type == 'none':
+        ind_out = _get_indices("trans", out_channels, groups=groups)
+    elif ind_type == "random":
+        ind_in = _get_indices("random", in_channels)
+        ind_out = _get_indices("random", out_channels)
+    elif ind_type == "none":
         ind_in = np.arange(in_channels).tolist()
         ind_out = np.arange(out_channels).tolist()
 
     return ind_in, ind_out
 
 
-def get_conv2d_fn(in_planes,
-                  out_planes,
-                  groups=1,
-                  max_channels_per_group=None,
-                  ind_type=None,
-                  mask=False,
-                  **kwargs):
+def get_conv2d_fn(
+    in_planes,
+    out_planes,
+    groups=1,
+    max_channels_per_group=None,
+    ind_type=None,
+    mask=False,
+    **kwargs
+):
     """ Decide which Conv2d function to use. This function will only
     be utilized when doing """
     if mask or not GroupConv2d.groupable(
-            in_planes,
-            out_planes,
-            groups=groups,
-            max_channels_per_group=max_channels_per_group
+        in_planes,
+        out_planes,
+        groups=groups,
+        max_channels_per_group=max_channels_per_group,
     ):  # if mask specified
         return functools.partial(MaskConv2d, in_planes, out_planes)
 
     # now we know Conv2d is groupable
-    G = GroupConv2d.get_num_groups(in_planes,
-                                   out_planes,
-                                   max_channels_per_group,
-                                   groups=groups)
+    G = GroupConv2d.get_num_groups(
+        in_planes, out_planes, max_channels_per_group, groups=groups
+    )
     # maybe update the indices
-    ind_in, ind_out = get_perm_indices(ind_type,
-                                       in_planes,
-                                       out_planes,
-                                       groups=G)
+    ind_in, ind_out = get_perm_indices(ind_type, in_planes, out_planes, groups=G)
 
     # all group parameters are wrapped
-    return functools.partial(GroupConv2d,
-                             in_planes,
-                             out_planes,
-                             groups=groups,
-                             max_channels_per_group=max_channels_per_group,
-                             ind_in=ind_in,
-                             ind_out=ind_out)
+    return functools.partial(
+        GroupConv2d,
+        in_planes,
+        out_planes,
+        groups=groups,
+        max_channels_per_group=max_channels_per_group,
+        ind_in=ind_in,
+        ind_out=ind_out,
+    )
 
 
 def conv3x3(in_planes, out_planes, stride=1, bias=False, **kwargs):
     """ 3x3 convolution with padding, support mask and group """
-    return get_conv2d_fn(in_planes, out_planes, **kwargs)(kernel_size=3,
-                                                          stride=stride,
-                                                          padding=1,
-                                                          bias=bias)
+    return get_conv2d_fn(in_planes, out_planes, **kwargs)(
+        kernel_size=3, stride=stride, padding=1, bias=bias
+    )
 
 
 def conv1x1(in_planes, out_planes, stride=1, bias=False, **kwargs):
     """ 1x1 convolution """
-    return get_conv2d_fn(in_planes, out_planes, **kwargs)(kernel_size=1,
-                                                          stride=stride,
-                                                          bias=bias)
+    return get_conv2d_fn(in_planes, out_planes, **kwargs)(
+        kernel_size=1, stride=stride, bias=bias
+    )
 
 
 def get_model_num_params(model):
     """ Compute the number of parameters. """
     num_params = 0
-    filters = ['mask', 'ind_in', 'ind_out']
+    filters = ["mask", "ind_in", "ind_out"]
 
     # HACK we need to get an accurate calculation of MaskConv2d
     mask_map = {}
@@ -152,7 +148,7 @@ def get_model_num_params(model):
             num = p.numel() / 1e6
 
         # HACK
-        mod_name = name.replace('.weight', '')
+        mod_name = name.replace(".weight", "")
         if mod_name in mask_map and mask_map[mod_name].G > 0:
             num /= mask_map[mod_name].G
 
@@ -163,14 +159,16 @@ def get_model_num_params(model):
 
 def get_model_num_ops(model, input_size):
     """ Return FLOPS. """
-    flops, _ = profile(model,
-                       input_size=input_size,
-                       custom_ops={
-                           MaskConv2d: MaskConv2d.count_num_ops,
-                           SparseGroupConv2d: SparseGroupConv2d.count_num_ops,
-                           MMPointwiseConv2d: MMPointwiseConv2d.count_num_ops,
-                       },
-                       quiet=True)
+    flops, _ = profile(
+        model,
+        input_size=input_size,
+        custom_ops={
+            MaskConv2d: MaskConv2d.count_num_ops,
+            SparseGroupConv2d: SparseGroupConv2d.count_num_ops,
+            MMPointwiseConv2d: MMPointwiseConv2d.count_num_ops,
+        },
+        quiet=True,
+    )
 
     return flops / 1e6
 
@@ -185,9 +183,9 @@ def get_num_conv2d_layers(model, exclude_downsample=True, include_linear=True):
 
     num = 0
     for n, m in model.named_modules():
-        if 'downsample' in n and exclude_downsample:
+        if "downsample" in n and exclude_downsample:
             continue
-        if (is_conv2d(m) or (include_linear and isinstance(m, nn.Linear))):
+        if is_conv2d(m) or (include_linear and isinstance(m, nn.Linear)):
             num += 1
 
     return num
@@ -196,24 +194,22 @@ def get_num_conv2d_layers(model, exclude_downsample=True, include_linear=True):
 def load_checkpoint(checkpoint, model):
     """ Load checkpoint content from the given path. """
     if not os.path.isfile(checkpoint):
-        raise RuntimeError(
-            'Checkpoint should be a valid file: {}'.format(checkpoint))
+        raise RuntimeError("Checkpoint should be a valid file: {}".format(checkpoint))
     if not isinstance(model, nn.Module):
-        raise TypeError('model should be a valid nn.Module, got {}'.format(
-            type(model)))
+        raise TypeError("model should be a valid nn.Module, got {}".format(type(model)))
 
     ckpt = torch.load(checkpoint)
-    model.load_state_dict(ckpt['state_dict'])
+    model.load_state_dict(ckpt["state_dict"])
 
 
 def get_num_classes(args):
     """ Get number of classes. """
     # TODO: args is something from the early_stage module.
-    if args.dataset == 'cifar10':
+    if args.dataset == "cifar10":
         return 10
-    elif args.dataset == 'cifar100':
+    elif args.dataset == "cifar100":
         return 100
-    raise ValueError('Cannot recognise dataset {}'.format(args.dataset))
+    raise ValueError("Cannot recognise dataset {}".format(args.dataset))
 
 
 def get_weight_parameter(mod):
@@ -223,4 +219,4 @@ def get_weight_parameter(mod):
     if isinstance(mod, GroupConv2d):
         return mod.conv2d.weight
 
-    raise TypeError('Cannot recognise mod type: {}'.format(type(mod)))
+    raise TypeError("Cannot recognise mod type: {}".format(type(mod)))

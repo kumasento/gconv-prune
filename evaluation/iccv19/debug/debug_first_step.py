@@ -23,30 +23,34 @@ from gumi.pruning import mask_utils
 
 logging.getLogger().setLevel(logging.DEBUG)
 
-parser = create_cli_parser(prog='Debug the choice of the first pruning step.')
-parser.add_argument('--excludes-for-applying-mask',
-                    nargs='+',
-                    help='Excluded module names for applying mask')
-parser.add_argument('--manual-seed',
-                    default=None,
-                    type=int,
-                    help='Manual seed for reproducibility.')
-parser.add_argument('--min-factor',
-                    type=float,
-                    default=0.0,
-                    help='Minimum channels that should appear in each group.')
-parser.add_argument('--max-groups',
-                    type=int,
-                    default=64,
-                    help='Maximum number of groups allowed')
-parser.add_argument('--taylor',
-                    action='store_true',
-                    default=False,
-                    help='Whether to use the Taylor pruning criterion')
+parser = create_cli_parser(prog="Debug the choice of the first pruning step.")
+parser.add_argument(
+    "--excludes-for-applying-mask",
+    nargs="+",
+    help="Excluded module names for applying mask",
+)
+parser.add_argument(
+    "--manual-seed", default=None, type=int, help="Manual seed for reproducibility."
+)
+parser.add_argument(
+    "--min-factor",
+    type=float,
+    default=0.0,
+    help="Minimum channels that should appear in each group.",
+)
+parser.add_argument(
+    "--max-groups", type=int, default=64, help="Maximum number of groups allowed"
+)
+parser.add_argument(
+    "--taylor",
+    action="store_true",
+    default=False,
+    help="Whether to use the Taylor pruning criterion",
+)
 args = parser.parse_args()
 
 # CUDA
-os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu_id
+os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu_id
 use_cuda = torch.cuda.is_available()
 cudnn.benchmark = True
 
@@ -81,16 +85,19 @@ class FirstStepDebugger(object):
         return set(
             functools.reduce(
                 list.__add__,
-                ([i, n // i] for i in range(1,
-                                            int(n**0.5) + 1) if n % i == 0)))
+                ([i, n // i] for i in range(1, int(n ** 0.5) + 1) if n % i == 0),
+            )
+        )
 
-    def find_group_candidates(self,
-                              mod,
-                              relative=False,
-                              allow_depthwise=False,
-                              min_factor=None,
-                              max_groups=None,
-                              **kwargs):
+    def find_group_candidates(
+        self,
+        mod,
+        relative=False,
+        allow_depthwise=False,
+        min_factor=None,
+        max_groups=None,
+        **kwargs
+    ):
         """ Find group number candidates in module.
             Note: use kwargs to pass additional requirements.
         """
@@ -127,9 +134,9 @@ class FirstStepDebugger(object):
         state_map = OrderedDict()
         for name, mod in model.named_modules():
             if isinstance(mod, MaskConv2d):  # only MaskConv2d can be grouped
-                Gs = self.find_group_candidates(mod,
-                                                min_factor=min_factor,
-                                                max_groups=max_groups)
+                Gs = self.find_group_candidates(
+                    mod, min_factor=min_factor, max_groups=max_groups
+                )
                 # current index and all candidates
                 state_map[name] = [0, list(Gs)]
 
@@ -147,10 +154,9 @@ class FirstStepDebugger(object):
                     next_G = state[1][state[0] + 1]
                     W = mod.weight
                     # run the heuristic algorithm to calculate cost
-                    _, _, crit = mask_utils.run_mbm(W,
-                                                    next_G,
-                                                    normalized=normalized,
-                                                    **kwargs)
+                    _, _, crit = mask_utils.run_mbm(
+                        W, next_G, normalized=normalized, **kwargs
+                    )
                     if not normalized:
                         crit /= W.norm(dim=(2, 3)).sum().item()
                         next_costs[name] = 1 - crit
@@ -159,13 +165,9 @@ class FirstStepDebugger(object):
 
         return next_costs
 
-    def prune_to_next_state(self,
-                            mod_name,
-                            model,
-                            state_map,
-                            min_val_acc=None,
-                            freeze=False,
-                            **kwargs):
+    def prune_to_next_state(
+        self, mod_name, model, state_map, min_val_acc=None, freeze=False, **kwargs
+    ):
         """ Prune model to the next state of the given mod """
         mod = self.find_module(mod_name, model)
         state = state_map[mod_name]
@@ -181,13 +183,13 @@ class FirstStepDebugger(object):
             self.freeze_other_modules(mod_name, model)
             # unfreeze the current pruning module
             for name, param in mod.named_parameters():
-                if 'mask' not in name:
+                if "mask" not in name:
                     param.requires_grad = True
 
         # now model has been pruned
-        return self.pruner.fine_tune(model,
-                                     return_init_acc=True,
-                                     min_val_acc=min_val_acc)
+        return self.pruner.fine_tune(
+            model, return_init_acc=True, min_val_acc=min_val_acc
+        )
 
     def get_model_size(self, model):
         """ Return model number of parameters and ops """
@@ -202,35 +204,36 @@ class FirstStepDebugger(object):
             if name_ == name:
                 return m
 
-    def run(self,
-            model,
-            min_factor=None,
-            max_groups=None,
-            max_epochs=1,
-            crit_type=None,
-            **kwargs):
-        logging.info('==> Building state map for all layers ...')
+    def run(
+        self,
+        model,
+        min_factor=None,
+        max_groups=None,
+        max_epochs=1,
+        crit_type=None,
+        **kwargs
+    ):
+        logging.info("==> Building state map for all layers ...")
 
         self.pruner = ModelPruner(self.args)  # new model pruner
-        if crit_type == 'taylor':
+        if crit_type == "taylor":
             self.pruner.collect_gradient(model)
-        state_map = self.build_state_map(model,
-                                         min_factor=min_factor,
-                                         max_groups=max_groups)
-        next_costs = self.get_next_cost(model,
-                                        state_map,
-                                        crit_type=crit_type,
-                                        **kwargs)
+        state_map = self.build_state_map(
+            model, min_factor=min_factor, max_groups=max_groups
+        )
+        next_costs = self.get_next_cost(model, state_map, crit_type=crit_type, **kwargs)
 
-        logging.info('==> All the states:')
+        logging.info("==> All the states:")
         for key, val in state_map.items():
-            print('{}\t{:10.6f} {}'.format(key, next_costs[key], val))
+            print("{}\t{:10.6f} {}".format(key, next_costs[key], val))
 
         # now iterate every module that can be pruned
         for i, key in enumerate(state_map):
             logging.info(
-                '==> Exploring module {} at step {} with cost {} ...'.format(
-                    key, i, next_costs[key]))
+                "==> Exploring module {} at step {} with cost {} ...".format(
+                    key, i, next_costs[key]
+                )
+            )
             # prepare a copy for pruning
             model_ = copy.deepcopy(model)
             state_map_ = copy.deepcopy(state_map)
@@ -238,29 +241,29 @@ class FirstStepDebugger(object):
             # setup pruner
             args = copy.copy(self.args)
             args.epochs = max_epochs  # maximum number of epochs
-            args.checkpoint = os.path.join(self.args.checkpoint,
-                                           'mod_{}'.format(i))
+            args.checkpoint = os.path.join(self.args.checkpoint, "mod_{}".format(i))
             self.pruner = ModelPruner(args)  # new model pruner
-            if crit_type == 'taylor':
+            if crit_type == "taylor":
                 self.pruner.collect_gradient(model_)
 
             # run the pruning
             best_acc, init_acc, best_model = self.prune_to_next_state(
-                key, model_, state_map_, crit_type=crit_type, **kwargs)
+                key, model_, state_map_, crit_type=crit_type, **kwargs
+            )
             num_params, num_ops = self.get_model_size(best_model)
 
             # store some data
             meta_data = {
-                'mod_name': key,
-                'cost': next_costs[key],
-                'val_acc': best_acc.item(),
-                'init_acc': init_acc.item(),
-                'G': state_map_[key][1][state_map_[key][0]],
-                'num_params': num_params,
-                'num_ops': num_ops,
+                "mod_name": key,
+                "cost": next_costs[key],
+                "val_acc": best_acc.item(),
+                "init_acc": init_acc.item(),
+                "G": state_map_[key][1][state_map_[key][0]],
+                "num_params": num_params,
+                "num_ops": num_ops,
             }
-            meta_file = os.path.join(args.checkpoint, 'meta_data.json')
-            with open(meta_file, 'w') as f:
+            meta_file = os.path.join(args.checkpoint, "meta_data.json")
+            with open(meta_file, "w") as f:
                 json.dump(meta_data, f)
 
 
@@ -277,23 +280,23 @@ def create_update_state_dict_fn(no_mask=False):
             - In this new script, we won't have "module." prefix
             - There won't be any '.conv2d' in the module
         """
-        logging.debug('Updating the state_dict to be loaded ...')
+        logging.debug("Updating the state_dict to be loaded ...")
         state_dict_ = copy.deepcopy(state_dict)
 
         for key, val in state_dict.items():
             key_ = key
 
-            if 'conv2d' in key_:
+            if "conv2d" in key_:
                 del state_dict_[key_]
-                key_ = key_.replace('.conv2d', '')
+                key_ = key_.replace(".conv2d", "")
                 state_dict_[key_] = val
 
-            if 'module' in key_:
+            if "module" in key_:
                 del state_dict_[key_]
-                key_ = key_.replace('module.', '')
+                key_ = key_.replace("module.", "")
                 state_dict_[key_] = val
 
-            if no_mask and 'mask' in key_:
+            if no_mask and "mask" in key_:
                 del state_dict_[key_]
 
         return state_dict_
@@ -301,18 +304,16 @@ def create_update_state_dict_fn(no_mask=False):
     return update_state_dict
 
 
-def create_update_model_fn(arch,
-                           dataset,
-                           pretrained,
-                           resume,
-                           excludes_for_applying_mask=None):
+def create_update_model_fn(
+    arch, dataset, pretrained, resume, excludes_for_applying_mask=None
+):
     """ """
 
     def update_model(model):
         """ """
         # if not resume:
         #   return model
-        if dataset.startswith('cifar'):
+        if dataset.startswith("cifar"):
             # apply mask right now
             utils.apply_mask(model, excludes=excludes_for_applying_mask)
 
@@ -328,21 +329,25 @@ def main():
         args.dataset,
         args.pretrained,
         args.resume,
-        excludes_for_applying_mask=args.excludes_for_applying_mask)
-    model = runner.load_model(update_model_fn=update_model_fn,
-                              update_state_dict_fn=create_update_state_dict_fn(
-                                  no_mask=not args.resume),
-                              data_parallel=False)
+        excludes_for_applying_mask=args.excludes_for_applying_mask,
+    )
+    model = runner.load_model(
+        update_model_fn=update_model_fn,
+        update_state_dict_fn=create_update_state_dict_fn(no_mask=not args.resume),
+        data_parallel=False,
+    )
 
     debugger = FirstStepDebugger(args)
-    debugger.run(model,
-                 min_factor=args.min_factor,
-                 max_groups=args.max_groups,
-                 perm='GRPS',
-                 num_iters=10,
-                 crit_type=None if not args.taylor else 'taylor',
-                 normalized=args.taylor)
+    debugger.run(
+        model,
+        min_factor=args.min_factor,
+        max_groups=args.max_groups,
+        perm="GRPS",
+        num_iters=10,
+        crit_type=None if not args.taylor else "taylor",
+        normalized=args.taylor,
+    )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

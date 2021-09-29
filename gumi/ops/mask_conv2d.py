@@ -8,7 +8,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-__all__ = ['MaskConv2d']
+__all__ = ["MaskConv2d"]
 
 
 class MaskConv2d(nn.Module):
@@ -20,17 +20,20 @@ class MaskConv2d(nn.Module):
         G(int): number of groups
         fake_mask(bool): whether the mask will be ineffective or not
     """
-    def __init__(self,
-                 in_channels,
-                 out_channels,
-                 kernel_size,
-                 stride=1,
-                 padding=0,
-                 dilation=1,
-                 groups=1,
-                 bias=False,
-                 fake_mask=False,
-                 **kwargs):
+
+    def __init__(
+        self,
+        in_channels,
+        out_channels,
+        kernel_size,
+        stride=1,
+        padding=0,
+        dilation=1,
+        groups=1,
+        bias=False,
+        fake_mask=False,
+        **kwargs
+    ):
         """ CTOR. Parameters from nn.Conv2d """
         super().__init__()
 
@@ -48,12 +51,12 @@ class MaskConv2d(nn.Module):
         # convolution coefficients
         self.bias = nn.Parameter(torch.randn(out_channels)) if bias else None
         self.weight = nn.Parameter(
-            torch.randn((out_channels, in_channels, kernel_size, kernel_size)))
+            torch.randn((out_channels, in_channels, kernel_size, kernel_size))
+        )
 
         # create a mask variable
         # mask is initialised by all 1s, shouldn't be updated.
-        self.mask = nn.Parameter(torch.ones(self.weight.shape[:2]),
-                                 requires_grad=False)
+        self.mask = nn.Parameter(torch.ones(self.weight.shape[:2]), requires_grad=False)
         self.fake_mask = fake_mask
 
     @staticmethod
@@ -63,18 +66,20 @@ class MaskConv2d(nn.Module):
         assert conv2d.groups == 1  # not a group conv
         assert conv2d.kernel_size[0] == conv2d.kernel_size[1]
 
-        mask_conv = MaskConv2d(conv2d.in_channels,
-                               conv2d.out_channels,
-                               conv2d.kernel_size[0],
-                               stride=conv2d.stride,
-                               padding=conv2d.padding,
-                               bias=conv2d.bias is not None)
+        mask_conv = MaskConv2d(
+            conv2d.in_channels,
+            conv2d.out_channels,
+            conv2d.kernel_size[0],
+            stride=conv2d.stride,
+            padding=conv2d.padding,
+            bias=conv2d.bias is not None,
+        )
 
         # update data
         if no_weight:
-            nn.init.kaiming_normal_(mask_conv.weight,
-                                    mode='fan_out',
-                                    nonlinearity='relu')
+            nn.init.kaiming_normal_(
+                mask_conv.weight, mode="fan_out", nonlinearity="relu"
+            )
         else:
             mask_conv.weight.data = conv2d.weight
 
@@ -131,9 +136,11 @@ class MaskConv2d(nn.Module):
             weight.data.mul_(mask_)
 
         # use the functional API
-        return F.conv2d(x,
-                        weight,
-                        bias=self.bias,
-                        stride=self.stride,
-                        padding=self.padding,
-                        dilation=self.dilation)
+        return F.conv2d(
+            x,
+            weight,
+            bias=self.bias,
+            stride=self.stride,
+            padding=self.padding,
+            dilation=self.dilation,
+        )

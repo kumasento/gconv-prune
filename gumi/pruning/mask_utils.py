@@ -8,7 +8,7 @@ import numpy as np
 import torch
 from scipy.optimize import linear_sum_assignment
 
-__all__ = ['create_mbm_mask']
+__all__ = ["create_mbm_mask"]
 
 
 def get_criterion(W, crit_type=None):
@@ -20,7 +20,7 @@ def get_criterion(W, crit_type=None):
     assert isinstance(W, torch.Tensor)
     assert W.dim() == 4
 
-    if crit_type == 'taylor':
+    if crit_type == "taylor":
         return get_taylor_criterion(W)
 
     kernel_dims = (2, 3)
@@ -54,7 +54,7 @@ def _get_numpy(tensor):
     elif isinstance(tensor, np.ndarray):
         return tensor
 
-    raise TypeError('Cannot handle tensor of type: {}'.format(type(tensor)))
+    raise TypeError("Cannot handle tensor of type: {}".format(type(tensor)))
 
 
 def get_sort_perm(C, dim=0):
@@ -143,13 +143,13 @@ def permute_criterion(C, method=None, G=None, num_iters=1):
         A permuted criterion (np.ndarray), indices of C_in, indices of C_out 
     """
     C = _get_numpy(C)
-    if method is None or method == 'SAME':
+    if method is None or method == "SAME":
         # NOTE: C_in first
         return C, np.arange(C.shape[1]), np.arange(C.shape[0])
-    elif method == 'SORT':
+    elif method == "SORT":
         ind_in, ind_out = get_sort_perm(C, dim=1), get_sort_perm(C, dim=0)
         return (C[ind_out, :])[:, ind_in], ind_in, ind_out
-    elif method == 'GRPS':
+    elif method == "GRPS":
         assert isinstance(G, int) and G > 0
         ind_in, ind_out = group_sort(C, G, num_iters=num_iters)
         return C[ind_out, :][:, ind_in], ind_in, ind_out
@@ -157,7 +157,7 @@ def permute_criterion(C, method=None, G=None, num_iters=1):
     raise ValueError('Cannot recognize method: "{}"'.format(method))
 
 
-def run_mbm_core(W, G, perm='GRPS', num_iters=10, crit_type=None):
+def run_mbm_core(W, G, perm="GRPS", num_iters=10, crit_type=None):
     """ Core MBM algorithm. """
 
     # Get the criterion matrix C. If the input matrix is 2-D, just use
@@ -172,10 +172,7 @@ def run_mbm_core(W, G, perm='GRPS', num_iters=10, crit_type=None):
 
     orig_crit = C.clone().detach().cpu()
     # permute the criterion by given permutation method
-    crit, ind_in, ind_out = permute_criterion(C,
-                                              method=perm,
-                                              G=G,
-                                              num_iters=num_iters)
+    crit, ind_in, ind_out = permute_criterion(C, method=perm, G=G, num_iters=num_iters)
 
     # crit has been permuted
     c_out, c_in = crit.shape
@@ -197,8 +194,8 @@ def run_mbm_core(W, G, perm='GRPS', num_iters=10, crit_type=None):
     for r, c in zip(row_ind, col_ind):
         rs, cs = r * g_out, c * g_in
         # TODO: necessary to sort? just look better
-        gnd_in.append(ind_in[cs:(cs + g_in)])
-        gnd_out.append(ind_out[rs:(rs + g_out)])
+        gnd_in.append(ind_in[cs : (cs + g_in)])
+        gnd_out.append(ind_out[rs : (rs + g_out)])
 
     # sort by the min index of each group in gnd_in
     gnd_in = np.array(gnd_in, dtype=np.int32)
@@ -211,13 +208,11 @@ def run_mbm_core(W, G, perm='GRPS', num_iters=10, crit_type=None):
     return gnd_in[grps, :], gnd_out[grps, :], cost.sum() - cost_, orig_crit
 
 
-def run_mbm(W, G, perm='GRPS', num_iters=10, crit_type=None, normalized=False):
+def run_mbm(W, G, perm="GRPS", num_iters=10, crit_type=None, normalized=False):
     """ Core MBM algorithm. """
-    gnd_in, gnd_out, cost, _ = run_mbm_core(W,
-                                            G,
-                                            perm=perm,
-                                            num_iters=num_iters,
-                                            crit_type=crit_type)
+    gnd_in, gnd_out, cost, _ = run_mbm_core(
+        W, G, perm=perm, num_iters=num_iters, crit_type=crit_type
+    )
 
     return gnd_in, gnd_out, cost
 
@@ -242,15 +237,12 @@ def create_mbm_mask(W, G, **kwargs):
     return mask
 
 
-def create_pruning_mask(W, G, perm='GRPS', num_iters=10):
+def create_pruning_mask(W, G, perm="GRPS", num_iters=10):
     """ Create the pruning mask.
         This API is explicitly used by gopt_v3,
         may become mainstream in the future.
     """
-    gnd_in, gnd_out, cost, crit = run_mbm_core(W,
-                                               G,
-                                               perm=perm,
-                                               num_iters=num_iters)
+    gnd_in, gnd_out, cost, crit = run_mbm_core(W, G, perm=perm, num_iters=num_iters)
 
     # create the mask
     mask = torch.zeros(W.shape[:2])  # same shape as the criterion

@@ -19,6 +19,7 @@ import yaml
 from datetime import datetime
 from subprocess import Popen, PIPE, STDOUT
 import logging
+
 logging.getLogger().setLevel(logging.DEBUG)
 
 # reuse model runner parameters
@@ -26,20 +27,26 @@ from gumi.model_runner.parser import create_cli_parser
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(prog='CLI for running CIFAR evaluation.')
-    parser.add_argument('-f',
-                        '--config',
-                        type=str,
-                        metavar='PATH',
-                        help='Configuration file for running')
-    parser.add_argument('--skip-baseline',
-                        action='store_true',
-                        default=False,
-                        help='Whether to skip the baseline command')
-    parser.add_argument('--gpu-id',
-                        type=str,
-                        default='',
-                        help='Override the gpu-id provided in configure files.')
+    parser = argparse.ArgumentParser(prog="CLI for running CIFAR evaluation.")
+    parser.add_argument(
+        "-f",
+        "--config",
+        type=str,
+        metavar="PATH",
+        help="Configuration file for running",
+    )
+    parser.add_argument(
+        "--skip-baseline",
+        action="store_true",
+        default=False,
+        help="Whether to skip the baseline command",
+    )
+    parser.add_argument(
+        "--gpu-id",
+        type=str,
+        default="",
+        help="Override the gpu-id provided in configure files.",
+    )
 
     return parser.parse_args()
 
@@ -51,11 +58,11 @@ class ConfigEncoder(object):
     def encode(cmd, args_dict):
         """ <arch>/<dataset>/<cmd>/[<group-config>/]<learning-config> """
         strs = []
-        strs.append(args_dict['--arch'])
-        strs.append(args_dict['--dataset'])
+        strs.append(args_dict["--arch"])
+        strs.append(args_dict["--dataset"])
         strs.append(cmd)
 
-        if cmd in ['prune', 'scratch']:
+        if cmd in ["prune", "scratch"]:
             # group information
             strs.append(ConfigEncoder.encode_group_config(args_dict))
 
@@ -64,11 +71,11 @@ class ConfigEncoder(object):
             if perm is not None:
                 strs.append(perm)
 
-        if cmd in ['gopt']:
+        if cmd in ["gopt"]:
             strs.append(ConfigEncoder.encode_gopt(args_dict))
 
         # don't need train hyperparameters
-        if cmd not in ['gopt']:
+        if cmd not in ["gopt"]:
             strs.append(ConfigEncoder.encode_train_hyper_params(args_dict))
 
         return os.path.join(*strs)
@@ -77,21 +84,20 @@ class ConfigEncoder(object):
     def encode_train_hyper_params(args_dict):
         """ Encode specified training hyper-parameters. """
         strs = []
-        if '--lr' in args_dict:
-            strs.append('LR_{}'.format(args_dict['--lr']))
-        if '--lr-type' in args_dict:
-            strs.append('{}'.format(args_dict['--lr-type']))
-        if '--epochs' in args_dict:
-            strs.append('N_{}'.format(args_dict['--epochs']))
-        if '--schedule' in args_dict:
-            strs.append('S_{}'.format(args_dict['--schedule'].replace(' ',
-                                                                      '-')))
-        if '--wd' in args_dict:
-            strs.append('WD_{}'.format(args_dict['--wd']))
-        if '--train-batch' in args_dict:
-            strs.append('B{}'.format(args_dict['--train-batch']))
+        if "--lr" in args_dict:
+            strs.append("LR_{}".format(args_dict["--lr"]))
+        if "--lr-type" in args_dict:
+            strs.append("{}".format(args_dict["--lr-type"]))
+        if "--epochs" in args_dict:
+            strs.append("N_{}".format(args_dict["--epochs"]))
+        if "--schedule" in args_dict:
+            strs.append("S_{}".format(args_dict["--schedule"].replace(" ", "-")))
+        if "--wd" in args_dict:
+            strs.append("WD_{}".format(args_dict["--wd"]))
+        if "--train-batch" in args_dict:
+            strs.append("B{}".format(args_dict["--train-batch"]))
 
-        return '_'.join(strs)
+        return "_".join(strs)
 
     @staticmethod
     def encode_gopt(args_dict):
@@ -99,63 +105,62 @@ class ConfigEncoder(object):
         strs = []
 
         # some cfgs
-        max_num_params = args_dict.get('--max-num-params', None)
-        max_num_ops = args_dict.get('--max-num-ops', None)
-        min_factor = args_dict.get('--min-factor', None)
-        strategy = args_dict.get('--strategy', None)
+        max_num_params = args_dict.get("--max-num-params", None)
+        max_num_ops = args_dict.get("--max-num-ops", None)
+        min_factor = args_dict.get("--min-factor", None)
+        strategy = args_dict.get("--strategy", None)
 
         if max_num_params:
-            strs.append('MP_{:.2f}M'.format(max_num_params))
+            strs.append("MP_{:.2f}M".format(max_num_params))
         if max_num_ops:
-            strs.append('MO_{:.2f}M'.format(max_num_ops))
+            strs.append("MO_{:.2f}M".format(max_num_ops))
         if min_factor:
-            strs.append('MIN_{}'.format(min_factor))
+            strs.append("MIN_{}".format(min_factor))
         if strategy:
-            strs.append('ST_{}'.format(strategy))
+            strs.append("ST_{}".format(strategy))
 
-        return '_'.join(strs)
+        return "_".join(strs)
 
     @staticmethod
     def encode_perm(args_dict):
         """ Encode permutation. """
         strs = []
 
-        perm_val = args_dict.get('--perm', None)
+        perm_val = args_dict.get("--perm", None)
         if perm_val:
             strs.append(perm_val)
 
-            if perm_val == 'GRPS':
-                ns = args_dict.get('--num-sort-iters', None)
+            if perm_val == "GRPS":
+                ns = args_dict.get("--num-sort-iters", None)
                 if ns:
-                    strs.append('NS_{}'.format(ns))
+                    strs.append("NS_{}".format(ns))
 
-        no_weights = args_dict.get('--no-weight', False)
+        no_weights = args_dict.get("--no-weight", False)
         if no_weights:
-            strs.append('WoW')  # w/o weights
+            strs.append("WoW")  # w/o weights
 
-        ind_type = args_dict.get('--ind', None)
+        ind_type = args_dict.get("--ind", None)
         if ind_type:
             strs.append(ind_type)
 
-        return '_'.join(strs)
+        return "_".join(strs)
 
     @staticmethod
     def encode_group_config(args_dict):
         """ """
-        if '--group-cfg' in args_dict:
-            assert os.path.isfile(args_dict['--group-cfg'])
-            base_path = os.path.basename(args_dict['--group-cfg'])
+        if "--group-cfg" in args_dict:
+            assert os.path.isfile(args_dict["--group-cfg"])
+            base_path = os.path.basename(args_dict["--group-cfg"])
             # TODO - this rule may not always be applicable
-            return 'CFG_{}'.format(
-                os.path.splitext(base_path)[0].replace('_', '-'))
+            return "CFG_{}".format(os.path.splitext(base_path)[0].replace("_", "-"))
 
-        if '--mcpg' in args_dict:
-            return 'MCPG_{}'.format(args_dict['--mcpg'])
+        if "--mcpg" in args_dict:
+            return "MCPG_{}".format(args_dict["--mcpg"])
 
-        if '-g' in args_dict:
-            return 'G_{}'.format(args_dict['-g'])
+        if "-g" in args_dict:
+            return "G_{}".format(args_dict["-g"])
 
-        raise ValueError('No valid group config can be found.')
+        raise ValueError("No valid group config can be found.")
 
 
 class ArgsEncoder(object):
@@ -171,9 +176,9 @@ class ArgsEncoder(object):
                 continue  # keys to be filtered out
 
             # special handler
-            if k == '--schedule':
+            if k == "--schedule":
                 argv.extend([k] + v.split())
-            elif k in ['--dataset-dir', '--resume', '--checkpoint']:
+            elif k in ["--dataset-dir", "--resume", "--checkpoint"]:
                 argv.extend([k, os.path.expandvars(v)])
             elif isinstance(v, bool) and v:
                 argv.extend([k])
@@ -192,10 +197,10 @@ class CIFAREval(object):
         self.args = args
         assert isinstance(self.args.config, str)
 
-        with open(self.args.config, 'r') as f:
+        with open(self.args.config, "r") as f:
             self.cfg = yaml.load(f)
 
-        self.base_dir = os.path.expandvars(self.cfg['base_dir'])
+        self.base_dir = os.path.expandvars(self.cfg["base_dir"])
         os.makedirs(self.base_dir, exist_ok=True)
 
         # self.dir = self.get_dir(args)
@@ -209,37 +214,36 @@ class CIFAREval(object):
 
     def update_args_dict(self, cmd, args_dict):
         """ Insert some new key-value pairs in args_dict, or do some calculation. """
-        base = self.cfg['common'].copy()  # common arguments, can be override
+        base = self.cfg["common"].copy()  # common arguments, can be override
         # HACK - we want to override the common
         base.update(args_dict)
         args_dict.update(base)
 
         # prepend the base directory
-        for path_key in ['--resume', '--checkpoint']:
+        for path_key in ["--resume", "--checkpoint"]:
             if path_key in args_dict:
-                args_dict[path_key] = os.path.join(self.base_dir,
-                                                   args_dict[path_key])
+                args_dict[path_key] = os.path.join(self.base_dir, args_dict[path_key])
 
         # the checkpoint dictionary
-        if '--checkpoint' not in args_dict:
+        if "--checkpoint" not in args_dict:
             # we only overwrite when there is no checkpoint specified
             checkpoint_path = self.get_dir(cmd, args_dict)
-            args_dict['--checkpoint'] = checkpoint_path
+            args_dict["--checkpoint"] = checkpoint_path
         else:
             # update if checkpoint is specified as a file
-            checkpoint_path = os.path.expandvars(args_dict['--checkpoint'])
+            checkpoint_path = os.path.expandvars(args_dict["--checkpoint"])
             if os.path.isfile(checkpoint_path):
                 checkpoint_path = os.path.dirname(checkpoint_path)
-                args_dict['--checkpoint'] = checkpoint_path
+                args_dict["--checkpoint"] = checkpoint_path
 
         # update GPU id
         if self.args.gpu_id:
-            args_dict['--gpu-id'] = self.args.gpu_id
+            args_dict["--gpu-id"] = self.args.gpu_id
 
     def run_all(self):
         """ Run all runs specified by self.cfg """
         results = []
-        for run_args in self.cfg['runs']:
+        for run_args in self.cfg["runs"]:
             res = self.run_cmd(run_args)
             results.append(res)
 
@@ -250,10 +254,9 @@ class CIFAREval(object):
         # extract the CMD and argument dicts
         cmd, args_dict = next(iter(run_args.items()))
 
-        #HACK
-        if cmd == 'baseline' and self.args.skip_baseline:
-            logging.info(
-                'Baseline command is skipped due to the --skip-baseline flag')
+        # HACK
+        if cmd == "baseline" and self.args.skip_baseline:
+            logging.info("Baseline command is skipped due to the --skip-baseline flag")
             return None  # skipped
 
         self.update_args_dict(cmd, args_dict)
@@ -261,23 +264,23 @@ class CIFAREval(object):
         # collect ARGV
         argv = self.create_argv(cmd, args_dict)
         # make some preparation
-        checkpoint = args_dict['--checkpoint']
+        checkpoint = args_dict["--checkpoint"]
         os.makedirs(checkpoint, exist_ok=True)
 
-        log_path = os.path.join(args_dict['--checkpoint'],
-                                'stdout.{}.log'.format(self.get_timestamp()))
-        log_file = open(log_path, 'w')
-        logging.debug('LOG file: {}'.format(log_path))
+        log_path = os.path.join(
+            args_dict["--checkpoint"], "stdout.{}.log".format(self.get_timestamp())
+        )
+        log_file = open(log_path, "w")
+        logging.debug("LOG file: {}".format(log_path))
 
         proc = Popen(argv, stdout=log_file, stderr=STDOUT)
 
-        logging.debug('==> Started process PID={} for {}:'.format(
-            proc.pid, cmd))
+        logging.debug("==> Started process PID={} for {}:".format(proc.pid, cmd))
         self.print_argv(argv)
 
         # waiting to be done
         stdout, stderr = proc.communicate()
-        logging.debug('DONE')
+        logging.debug("DONE")
 
         log_file.close()
 
@@ -298,27 +301,27 @@ class CIFAREval(object):
 
     def create_argv(self, cmd, args_dict):
         """ Create the argument list from cmd and args_dict """
-        prog = '{}.py'.format(cmd)
+        prog = "{}.py".format(cmd)
         assert os.path.isfile(prog)
 
-        argv = ['python', prog] + ArgsEncoder.encode(args_dict)
+        argv = ["python", prog] + ArgsEncoder.encode(args_dict)
 
         return argv
 
     def print_argv(self, argv):
         """ Print the ARGV to be executed. """
         # the header
-        print(' '.join(argv[:2]) + ' \\')
+        print(" ".join(argv[:2]) + " \\")
 
         # print every pair of parameters
         i = 2
         while i < len(argv):
             # check whether a parameter exists
             j = 1
-            while i + j < len(argv) and argv[i + j][0] != '-':
+            while i + j < len(argv) and argv[i + j][0] != "-":
                 j += 1
 
-            print('\t{} \\'.format(' '.join(argv[i:i + j])))
+            print("\t{} \\".format(" ".join(argv[i : i + j])))
             i += j
 
 
@@ -330,5 +333,5 @@ def main():
     # cifar_eval.run_prune(args)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

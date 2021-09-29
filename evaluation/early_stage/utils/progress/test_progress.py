@@ -5,11 +5,16 @@ from __future__ import print_function
 import random
 import time
 
-from progress.bar import (Bar, ChargingBar, FillingSquaresBar,
-                          FillingCirclesBar, IncrementalBar, PixelBar,
-                          ShadyBar)
-from progress.spinner import (Spinner, PieSpinner, MoonSpinner, LineSpinner,
-                              PixelSpinner)
+from progress.bar import (
+    Bar,
+    ChargingBar,
+    FillingSquaresBar,
+    FillingCirclesBar,
+    IncrementalBar,
+    PixelBar,
+    ShadyBar,
+)
+from progress.spinner import Spinner, PieSpinner, MoonSpinner, LineSpinner, PixelSpinner
 from progress.counter import Counter, Countdown, Stack, Pie
 
 
@@ -20,28 +25,28 @@ def sleep():
 
 
 for bar_cls in (Bar, ChargingBar, FillingSquaresBar, FillingCirclesBar):
-    suffix = '%(index)d/%(max)d [%(elapsed)d / %(eta)d / %(eta_td)s]'
+    suffix = "%(index)d/%(max)d [%(elapsed)d / %(eta)d / %(eta_td)s]"
     bar = bar_cls(bar_cls.__name__, suffix=suffix)
     for i in bar.iter(range(200)):
         sleep()
 
 for bar_cls in (IncrementalBar, PixelBar, ShadyBar):
-    suffix = '%(percent)d%% [%(elapsed_td)s / %(eta)d / %(eta_td)s]'
+    suffix = "%(percent)d%% [%(elapsed_td)s / %(eta)d / %(eta_td)s]"
     bar = bar_cls(bar_cls.__name__, suffix=suffix)
     for i in bar.iter(range(200)):
         sleep()
 
 for spin in (Spinner, PieSpinner, MoonSpinner, LineSpinner, PixelSpinner):
-    for i in spin(spin.__name__ + ' ').iter(range(100)):
+    for i in spin(spin.__name__ + " ").iter(range(100)):
         sleep()
     print()
 
 for singleton in (Counter, Countdown, Stack, Pie):
-    for i in singleton(singleton.__name__ + ' ').iter(range(100)):
+    for i in singleton(singleton.__name__ + " ").iter(range(100)):
         sleep()
     print()
 
-bar = IncrementalBar('Random', suffix='%(index)d')
+bar = IncrementalBar("Random", suffix="%(index)d")
 for i in range(100):
     bar.goto(random.randint(0, 100))
     sleep()

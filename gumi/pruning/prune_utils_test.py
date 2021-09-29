@@ -9,7 +9,6 @@ from gumi.pruning import prune_utils
 
 
 class PruneUtilsTest(unittest.TestCase):
-
     def test_prune_module(self):
         conv = MaskConv2d(32, 32, 3)
         G = 4
@@ -18,5 +17,5 @@ class PruneUtilsTest(unittest.TestCase):
         self.assertFalse(torch.allclose(conv.mask, torch.ones(conv.mask.shape)))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

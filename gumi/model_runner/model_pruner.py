@@ -7,6 +7,7 @@ import time
 import shutil
 import json
 import logging
+
 logging.getLogger().setLevel(logging.DEBUG)
 
 import numpy as np
@@ -33,8 +34,7 @@ class ModelPruner(ModelRunner):
         """ CTOR. """
         super().__init__(args)
 
-    def prune(self, model, G=0, get_num_groups_fn=None, use_cuda=True,
-              **kwargs):
+    def prune(self, model, G=0, get_num_groups_fn=None, use_cuda=True, **kwargs):
         """ The main prune function. 
     
     Now we assume that all the modules that can be pruned
@@ -71,7 +71,7 @@ class ModelPruner(ModelRunner):
             NOTE: G is known at this moment.
         """
         assert isinstance(mod, MaskConv2d)
-        assert G >= 1, '{} has G={} smaller than 1'.format(name, G)
+        assert G >= 1, "{} has G={} smaller than 1".format(name, G)
 
         W = model_utils.get_weight_parameter(mod)
         C_out, C_in = W.shape[:2]
@@ -92,32 +92,33 @@ class ModelPruner(ModelRunner):
         best_acc = 0
         epochs = self.args.epochs
         base_lr = self.args.lr
-        optimizer = optim.SGD(model.parameters(),
-                              lr=base_lr,
-                              momentum=self.args.momentum,
-                              weight_decay=self.args.weight_decay)
+        optimizer = optim.SGD(
+            model.parameters(),
+            lr=base_lr,
+            momentum=self.args.momentum,
+            weight_decay=self.args.weight_decay,
+        )
 
-        train_loss, train_acc = utils.train(self.train_loader,
-                                            model,
-                                            self.criterion,
-                                            optimizer,
-                                            0,
-                                            max_iters=1,
-                                            print_freq=self.args.print_freq,
-                                            gpu=device,
-                                            state=self.state,
-                                            schedule=self.args.schedule,
-                                            epochs=self.args.epochs,
-                                            base_lr=self.args.lr,
-                                            gamma=self.args.gamma,
-                                            lr_type=self.args.lr_type)
+        train_loss, train_acc = utils.train(
+            self.train_loader,
+            model,
+            self.criterion,
+            optimizer,
+            0,
+            max_iters=1,
+            print_freq=self.args.print_freq,
+            gpu=device,
+            state=self.state,
+            schedule=self.args.schedule,
+            epochs=self.args.epochs,
+            base_lr=self.args.lr,
+            gamma=self.args.gamma,
+            lr_type=self.args.lr_type,
+        )
 
-    def fine_tune(self,
-                  model,
-                  min_val_acc=None,
-                  return_init_acc=False,
-                  max_iters=None,
-                  **kwargs):
+    def fine_tune(
+        self, model, min_val_acc=None, return_init_acc=False, max_iters=None, **kwargs
+    ):
         """ Fine tune a pruned model. """
         if torch.cuda.is_available():
             model.cuda()  # in case the model is not on CUDA yet.
@@ -127,17 +128,21 @@ class ModelPruner(ModelRunner):
         best_acc = 0
         epochs = self.args.epochs
         base_lr = self.args.lr
-        optimizer = optim.SGD(model.parameters(),
-                              lr=base_lr,
-                              momentum=self.args.momentum,
-                              weight_decay=self.args.weight_decay)
+        optimizer = optim.SGD(
+            model.parameters(),
+            lr=base_lr,
+            momentum=self.args.momentum,
+            weight_decay=self.args.weight_decay,
+        )
 
         # validation in the beginning
-        val_loss, val_acc = utils.validate(self.val_loader,
-                                           model,
-                                           self.criterion,
-                                           gpu=device,
-                                           print_freq=self.args.print_freq)
+        val_loss, val_acc = utils.validate(
+            self.val_loader,
+            model,
+            self.criterion,
+            gpu=device,
+            print_freq=self.args.print_freq,
+        )
         init_acc = val_acc
         best_acc = val_acc
         best_model = None
@@ -146,35 +151,40 @@ class ModelPruner(ModelRunner):
             # TODO(13/02/2019): learning rate adjustment
             # self.adjust_learning_rate(epoch, optimizer)
 
-            logging.debug('Epoch: [%d | %d] LR: %f' %
-                          (epoch + 1, epochs, self.state['lr']))
+            logging.debug(
+                "Epoch: [%d | %d] LR: %f" % (epoch + 1, epochs, self.state["lr"])
+            )
 
             # Run train and validation for one epoch
-            train_loss, train_acc = utils.train(self.train_loader,
-                                                model,
-                                                self.criterion,
-                                                optimizer,
-                                                epoch,
-                                                max_iters=max_iters,
-                                                print_freq=self.args.print_freq,
-                                                gpu=device,
-                                                state=self.state,
-                                                schedule=self.args.schedule,
-                                                epochs=self.args.epochs,
-                                                base_lr=self.args.lr,
-                                                gamma=self.args.gamma,
-                                                lr_type=self.args.lr_type)
+            train_loss, train_acc = utils.train(
+                self.train_loader,
+                model,
+                self.criterion,
+                optimizer,
+                epoch,
+                max_iters=max_iters,
+                print_freq=self.args.print_freq,
+                gpu=device,
+                state=self.state,
+                schedule=self.args.schedule,
+                epochs=self.args.epochs,
+                base_lr=self.args.lr,
+                gamma=self.args.gamma,
+                lr_type=self.args.lr_type,
+            )
 
-            val_loss, val_acc = utils.validate(self.val_loader,
-                                               model,
-                                               self.criterion,
-                                               gpu=device,
-                                               print_freq=self.args.print_freq)
+            val_loss, val_acc = utils.validate(
+                self.val_loader,
+                model,
+                self.criterion,
+                gpu=device,
+                print_freq=self.args.print_freq,
+            )
 
             # Append message to Logger
-            self.logger.append([
-                self.state['lr'], train_loss, 0.0, val_loss, train_acc, val_acc
-            ])
+            self.logger.append(
+                [self.state["lr"], train_loss, 0.0, val_loss, train_acc, val_acc]
+            )
 
             # Update best accuracy
             is_best = val_acc > best_acc
@@ -183,14 +193,13 @@ class ModelPruner(ModelRunner):
                 best_model = copy.deepcopy(model)
 
             checkpoint_state = {
-                'epoch': epoch + 1,
-                'state_dict': model.state_dict(),
-                'acc': val_acc,
-                'best_acc': best_acc,
-                'optimizer': optimizer.state_dict(),
+                "epoch": epoch + 1,
+                "state_dict": model.state_dict(),
+                "acc": val_acc,
+                "best_acc": best_acc,
+                "optimizer": optimizer.state_dict(),
             }
-            utils.save_checkpoint(checkpoint_state, is_best,
-                                  self.args.checkpoint)
+            utils.save_checkpoint(checkpoint_state, is_best, self.args.checkpoint)
 
             if min_val_acc is not None and val_acc >= min_val_acc:
                 break
@@ -200,8 +209,7 @@ class ModelPruner(ModelRunner):
 
         # Finalising
         self.logger.close()
-        logging.info(
-            'Best accuracy while fine-tuning: {:.2f}%'.format(best_acc))
+        logging.info("Best accuracy while fine-tuning: {:.2f}%".format(best_acc))
 
         if not return_init_acc:
             return best_acc, best_model
