@@ -7,6 +7,11 @@
 
 This is the codebase for paper [Efficient Structured Pruning and Architecture Searching for Group Convolution](https://arxiv.org/abs/1811.09341v3) that will appear at the [ICCV'19 NEUARCH workshop](https://neuralarchitects.org/).
 
+![Overall workflow](https://user-images.githubusercontent.com/8768839/135343849-eca7f27a-1181-4381-af4f-b8e3b6fdfe5b.png)
+
+![Pruning objective](https://user-images.githubusercontent.com/8768839/135343917-3c03bba9-2cfe-4774-9c29-038d9c34f288.png)
+
+
 - [GConv Prune](#gconv-prune)
   - [Installation](#installation)
   - [Usage](#usage)
