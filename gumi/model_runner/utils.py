@@ -1,36 +1,33 @@
 """ Utility functions for model_runner """
 
+import json
+import logging
+import math
+import os
 import random
 import shutil
-import math
-import time
-import json
-import warnings
 import sys
-import os
-import logging
-
-logger = logging.getLogger("model_runner.utils")
-logger.setLevel(logging.DEBUG)
+import time
+import warnings
 
 import torch
+import torch.backends.cudnn as cudnn
 import torch.nn as nn
 import torch.nn.parallel
-import torch.backends.cudnn as cudnn
 import torch.optim as optim
 import torch.utils.data as data
-import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 import torchvision.models as imagenet_models
+import torchvision.transforms as transforms
+from gumi import model_utils
+from gumi import \
+    models as cifar_models  # a module contains all supported models
+from gumi.models import imagenet as custom_imagenet_models
+from gumi.ops import *
 
 #######################################
 # Models                              #
 #######################################
-
-from gumi.ops import *
-from gumi import model_utils
-from gumi import models as cifar_models  # a module contains all supported models
-from gumi.models import imagenet as custom_imagenet_models
 
 models = {
     **cifar_models.__dict__,
@@ -38,10 +35,8 @@ models = {
     **custom_imagenet_models.__dict__,
 }
 model_names = sorted(
-    name
-    for name in models
-    if name.islower() and not name.startswith("__") and callable(models[name])
-)
+    name for name in models
+    if name.islower() and not name.startswith("__") and callable(models[name]))
 
 # datasets can be loaded by imagenet loader
 IMAGENET_DATASETS = ["imagenet", "cub200"]
@@ -89,7 +84,8 @@ def apply_mask(model, excludes=None, use_cuda=True):
                 # if not, we are losing modules
                 assert len(list(child.children())) == 0
 
-                mask_conv = MaskConv2d.create_from_conv2d(child, use_cuda=use_cuda)
+                mask_conv = MaskConv2d.create_from_conv2d(child,
+                                                          use_cuda=use_cuda)
                 mask_conv.G = -1  # de-initialise G
                 # update dict
                 name_to_mod[child_name] = mask_conv
@@ -116,19 +112,17 @@ def get_model_num_ops(model, dataset):
     return model_utils.get_model_num_ops(model, input_size)
 
 
-def load_model(
-    arch,
-    dataset,
-    resume=None,
-    pretrained=False,
-    update_model_fn=None,
-    update_state_dict_fn=None,
-    use_cuda=True,
-    fine_tune=False,
-    data_parallel=True,
-    checkpoint_file_name="checkpoint.pth.tar",
-    **kwargs
-):
+def load_model(arch,
+               dataset,
+               resume=None,
+               pretrained=False,
+               update_model_fn=None,
+               update_state_dict_fn=None,
+               use_cuda=True,
+               fine_tune=False,
+               data_parallel=True,
+               checkpoint_file_name="checkpoint.pth.tar",
+               **kwargs):
     """ Load a model.
   
     You can either load a CIFAR model from gumi.models
@@ -155,11 +149,9 @@ def load_model(
 
         replace_classifier(arch, model, dataset, fine_tune=fine_tune)
 
-    logging.debug(
-        "Total params: {:.2f}M FLOPS: {:.2f}M".format(
-            model_utils.get_model_num_params(model), get_model_num_ops(model, dataset)
-        )
-    )
+    logging.debug("Total params: {:.2f}M FLOPS: {:.2f}M".format(
+        model_utils.get_model_num_params(model),
+        get_model_num_ops(model, dataset)))
 
     # update model if required
     if update_model_fn:
@@ -169,8 +161,7 @@ def load_model(
     if resume:  # load from checkpoint
         if pretrained:
             raise ValueError(
-                "You cannot specify pretrained to True and resume not None."
-            )
+                "You cannot specify pretrained to True and resume not None.")
 
         assert isinstance(resume, str)
 
@@ -178,8 +169,8 @@ def load_model(
         if os.path.isdir(resume):
             resume = os.path.join(resume, checkpoint_file_name)
             logging.debug(
-                "Resume was given as a directory, updated to: {}".format(resume)
-            )
+                "Resume was given as a directory, updated to: {}".format(
+                    resume))
 
         # now resume should be a valid file.
         assert os.path.isfile(resume)
@@ -219,16 +210,19 @@ def replace_classifier(arch, model, dataset, fine_tune=False):
     elif arch == "alexnet" or arch.startswith("vgg"):
         model.classifier[6] = nn.Linear(4096, num_classes)
     elif arch.startswith("squeezenet"):
-        model.classifier[1] = nn.Conv2d(
-            512, num_classes, kernel_size=(1, 1), stride=(1, 1)
-        )
+        model.classifier[1] = nn.Conv2d(512,
+                                        num_classes,
+                                        kernel_size=(1, 1),
+                                        stride=(1, 1))
     elif arch.startswith("densenet"):
         model.classifier = nn.Linear(1024, num_classes)
     elif arch.startswith("mobilenet"):
         in_features = model.fc.in_features
         model.fc = nn.Linear(in_features, num_classes)
         # HACK
-        nn.init.kaiming_normal_(model.fc.weight, mode="fan_out", nonlinearity="relu")
+        nn.init.kaiming_normal_(model.fc.weight,
+                                mode="fan_out",
+                                nonlinearity="relu")
     else:
         raise ValueError("ARCH={} cannot be recognized.".format(arch))
 
@@ -246,30 +240,26 @@ def set_require_grad(model, require_grad):
 def get_cifar_transform(is_training=False, **kwargs):
     """ Get the input data transform object. """
     if is_training:
-        return transforms.Compose(
-            [
-                transforms.RandomCrop(32, padding=4),
-                transforms.RandomHorizontalFlip(),
-                transforms.ToTensor(),
-                transforms.Normalize(
-                    (0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)
-                ),
-            ]
-        )
+        return transforms.Compose([
+            transforms.RandomCrop(32, padding=4),
+            transforms.RandomHorizontalFlip(),
+            transforms.ToTensor(),
+            transforms.Normalize((0.4914, 0.4822, 0.4465),
+                                 (0.2023, 0.1994, 0.2010)),
+        ])
     else:
-        return transforms.Compose(
-            [
-                transforms.ToTensor(),
-                transforms.Normalize(
-                    (0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)
-                ),
-            ]
-        )
+        return transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize((0.4914, 0.4822, 0.4465),
+                                 (0.2023, 0.1994, 0.2010)),
+        ])
 
 
-def get_cifar_dataset(
-    dataset, is_training=False, download=False, dataset_dir=None, **kwargs
-):
+def get_cifar_dataset(dataset,
+                      is_training=False,
+                      download=False,
+                      dataset_dir=None,
+                      **kwargs):
     """ create a CIFAR dataset object """
     assert isinstance(dataset_dir, str) and os.path.isdir(dataset_dir)
 
@@ -280,8 +270,8 @@ def get_cifar_dataset(
         CIFARDataset = datasets.CIFAR100
     else:
         raise ValueError(
-            'dataset should be either "cifar10" or "cifar100", got: {}'.format(dataset)
-        )
+            'dataset should be either "cifar10" or "cifar100", got: {}'.format(
+                dataset))
 
     return CIFARDataset(
         root=dataset_dir,
@@ -295,43 +285,35 @@ def get_imagenet_dataset(is_training=False, dataset_dir=None, **kwargs):
     """ Create ImageNet dataset object. """
     assert isinstance(dataset_dir, str) and os.path.isdir(dataset_dir)
 
-    normalize = transforms.Normalize(
-        mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
-    )
+    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                     std=[0.229, 0.224, 0.225])
 
     # convention
     train_dir = os.path.join(dataset_dir, "train")
     val_dir = os.path.join(dataset_dir, "val")
 
-    logger.debug(
-        "Creating ImageNet dataset loader for {} ...".format(
-            "training" if is_training else "validation"
-        )
-    )
+    logging.debug("Creating ImageNet dataset loader for {} ...".format(
+        "training" if is_training else "validation"))
 
     if is_training:
         return datasets.ImageFolder(
             train_dir,
-            transforms.Compose(
-                [
-                    transforms.RandomResizedCrop(224),
-                    transforms.RandomHorizontalFlip(),
-                    transforms.ToTensor(),
-                    normalize,
-                ]
-            ),
+            transforms.Compose([
+                transforms.RandomResizedCrop(224),
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+                normalize,
+            ]),
         )
     else:
         return datasets.ImageFolder(
             val_dir,
-            transforms.Compose(
-                [
-                    transforms.Resize(256),
-                    transforms.CenterCrop(224),
-                    transforms.ToTensor(),
-                    normalize,
-                ]
-            ),
+            transforms.Compose([
+                transforms.Resize(256),
+                transforms.CenterCrop(224),
+                transforms.ToTensor(),
+                normalize,
+            ]),
         )
 
 
@@ -362,13 +344,15 @@ def get_dataset(dataset, **kwargs):
         return get_imagenet_dataset(**kwargs)
     else:
         raise ValueError(
-            'dataset should be one of "cifar10", "cifar100", "imagenet", "cub200", got: {}'.format(
-                dataset
-            )
-        )
+            'dataset should be one of "cifar10", "cifar100", "imagenet", "cub200", got: {}'
+            .format(dataset))
 
 
-def get_data_loader(dataset, dataset_dir, batch_size, workers=8, is_training=False):
+def get_data_loader(dataset,
+                    dataset_dir,
+                    batch_size,
+                    workers=8,
+                    is_training=False):
     """ Create data loader. """
     return data.DataLoader(
         get_dataset(dataset, is_training=is_training, dataset_dir=dataset_dir),
@@ -386,7 +370,6 @@ def get_data_loader(dataset, dataset_dir, batch_size, workers=8, is_training=Fal
 
 class AverageMeter(object):
     """Computes and stores the average and current value"""
-
     def __init__(self):
         self.reset()
 
@@ -403,7 +386,7 @@ class AverageMeter(object):
         self.avg = self.sum / self.count
 
 
-def accuracy(output, target, topk=(1,)):
+def accuracy(output, target, topk=(1, )):
     """Computes the precision@k for the specified values of k"""
     with torch.no_grad():
         maxk = max(topk)
@@ -415,7 +398,7 @@ def accuracy(output, target, topk=(1,)):
 
         res = []
         for k in topk:
-            correct_k = correct[:k].view(-1).float().sum(0, keepdim=True)
+            correct_k = correct[:k].reshape(-1).float().sum(0, keepdim=True)
             res.append(correct_k.mul_(100.0 / batch_size))
         return res
 
@@ -425,18 +408,16 @@ def accuracy(output, target, topk=(1,)):
 #######################################
 
 
-def train(
-    train_loader,
-    model,
-    criterion,
-    optimizer,
-    epoch,
-    print_freq=100,
-    gpu=None,
-    max_iters=None,
-    no_update=False,
-    **kwargs
-):
+def train(train_loader,
+          model,
+          criterion,
+          optimizer,
+          epoch,
+          print_freq=100,
+          gpu=None,
+          max_iters=None,
+          no_update=False,
+          **kwargs):
     """ Major training function. """
     batch_time = AverageMeter()
     data_time = AverageMeter()
@@ -452,9 +433,11 @@ def train(
         # measure data loading time
         data_time.update(time.time() - end)
 
-        lr = adjust_learning_rate(
-            epoch, optimizer, batch=i, batches=len(train_loader), **kwargs
-        )
+        lr = adjust_learning_rate(epoch,
+                                  optimizer,
+                                  batch=i,
+                                  batches=len(train_loader),
+                                  **kwargs)
 
         if gpu is not None:
             input = input.cuda(gpu, non_blocking=True)
@@ -484,25 +467,23 @@ def train(
         end = time.time()
 
         if i % print_freq == 0:
-            print(
-                "Epoch: [{0}][{1}/{2}]\t"
-                "Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t"
-                "Data {data_time.val:.3f} ({data_time.avg:.3f})\t"
-                "LR: {lr:.4f}\t"
-                "Loss {loss.val:.4f} ({loss.avg:.4f})\t"
-                "Acc@1 {top1.val:.3f} ({top1.avg:.3f})\t"
-                "Acc@5 {top5.val:.3f} ({top5.avg:.3f})".format(
-                    epoch,
-                    i,
-                    len(train_loader),
-                    lr=lr,
-                    batch_time=batch_time,
-                    data_time=data_time,
-                    loss=losses,
-                    top1=top1,
-                    top5=top5,
-                )
-            )
+            print("Epoch: [{0}][{1}/{2}]\t"
+                  "Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t"
+                  "Data {data_time.val:.3f} ({data_time.avg:.3f})\t"
+                  "LR: {lr:.4f}\t"
+                  "Loss {loss.val:.4f} ({loss.avg:.4f})\t"
+                  "Acc@1 {top1.val:.3f} ({top1.avg:.3f})\t"
+                  "Acc@5 {top5.val:.3f} ({top5.avg:.3f})".format(
+                      epoch,
+                      i,
+                      len(train_loader),
+                      lr=lr,
+                      batch_time=batch_time,
+                      data_time=data_time,
+                      loss=losses,
+                      top1=top1,
+                      top5=top5,
+                  ))
 
     return losses.avg, top1.avg
 
@@ -538,47 +519,48 @@ def validate(val_loader, model, criterion, print_freq=100, gpu=None):
             end = time.time()
 
             if i % print_freq == 0:
-                print(
-                    "Test: [{0}/{1}]\t"
-                    "Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t"
-                    "Loss {loss.val:.4f} ({loss.avg:.4f})\t"
-                    "Acc@1 {top1.val:.3f} ({top1.avg:.3f})\t"
-                    "Acc@5 {top5.val:.3f} ({top5.avg:.3f})".format(
-                        i,
-                        len(val_loader),
-                        batch_time=batch_time,
-                        loss=losses,
-                        top1=top1,
-                        top5=top5,
-                    )
-                )
+                print("Test: [{0}/{1}]\t"
+                      "Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t"
+                      "Loss {loss.val:.4f} ({loss.avg:.4f})\t"
+                      "Acc@1 {top1.val:.3f} ({top1.avg:.3f})\t"
+                      "Acc@5 {top5.val:.3f} ({top5.avg:.3f})".format(
+                          i,
+                          len(val_loader),
+                          batch_time=batch_time,
+                          loss=losses,
+                          top1=top1,
+                          top5=top5,
+                      ))
 
-        print(
-            " * Acc@1 {top1.avg:.3f} Acc@5 {top5.avg:.3f}".format(top1=top1, top5=top5)
-        )
+        print(" * Acc@1 {top1.avg:.3f} Acc@5 {top5.avg:.3f}".format(top1=top1,
+                                                                    top5=top5))
 
     return losses.avg, top1.avg
 
 
-def save_checkpoint(state, is_best, checkpoint_dir, file_name="checkpoint.pth.tar"):
+def save_checkpoint(state,
+                    is_best,
+                    checkpoint_dir,
+                    file_name="checkpoint.pth.tar"):
     path = os.path.join(checkpoint_dir, file_name)
     torch.save(state, path)
 
     if is_best:
-        shutil.copyfile(path, os.path.join(checkpoint_dir, "model_best.pth.tar"))
+        shutil.copyfile(path, os.path.join(checkpoint_dir,
+                                           "model_best.pth.tar"))
 
 
 def adjust_learning_rate(
-    epoch,
-    optimizer,
-    state=None,
-    schedule=None,
-    epochs=None,
-    batch=None,
-    batches=None,
-    base_lr=None,
-    gamma=None,
-    lr_type=None,
+        epoch,
+        optimizer,
+        state=None,
+        schedule=None,
+        epochs=None,
+        batch=None,
+        batches=None,
+        base_lr=None,
+        gamma=None,
+        lr_type=None,
 ):
     """ Adjust the LR value in state. """
     assert state is not None
@@ -613,9 +595,11 @@ def adjust_learning_rate(
     return lr
 
 
-def create_get_num_groups_fn(
-    G=0, MCPG=0, group_cfg=None, use_cuda=True, data_parallel=True
-):
+def create_get_num_groups_fn(G=0,
+                             MCPG=0,
+                             group_cfg=None,
+                             use_cuda=True,
+                             data_parallel=True):
     """ Create the hook function for getting 
     the number of groups for a given module. """
 
@@ -638,24 +622,24 @@ def create_get_num_groups_fn(
                 G_ = g_cfg[name]["G"]
                 # do some verification
                 if G_ != 1:  # HACK
-                    assert F == g_cfg[name]["F"], "F={} does not match cfg={}".format(
-                        F, g_cfg[name]["F"]
-                    )
-                    assert C == g_cfg[name]["C"], "C={} does not match cfg={}".format(
-                        C, g_cfg[name]["C"]
-                    )
+                    assert F == g_cfg[name][
+                        "F"], "F={} does not match cfg={}".format(
+                            F, g_cfg[name]["F"])
+                    assert C == g_cfg[name][
+                        "C"], "C={} does not match cfg={}".format(
+                            C, g_cfg[name]["C"])
             else:
                 G_ = 1  # HACK - we don't want to have G=0 in further processing
 
         elif MCPG > 0:
             if GroupConv2d.groupable(C, F, max_channels_per_group=MCPG):
-                G_ = GroupConv2d.get_num_groups(C, F, max_channels_per_group=MCPG)
+                G_ = GroupConv2d.get_num_groups(C,
+                                                F,
+                                                max_channels_per_group=MCPG)
             else:
                 logging.warn(
-                    "Module {} is not groupable under MCPG={}, set its G to 1".format(
-                        name, MCPG
-                    )
-                )
+                    "Module {} is not groupable under MCPG={}, set its G to 1".
+                    format(name, MCPG))
                 G_ = 1
 
         return G_

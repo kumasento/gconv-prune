@@ -1,32 +1,26 @@
+#!/usr/bin/env python3
 """ Pruning CLI tool. """
 
-import argparse
 import copy
 import json
 import logging
 import os
-import shutil
-import sys
-import time
 
 import numpy as np
 import torch
 import torch.backends.cudnn as cudnn
-import torch.nn as nn
 import torch.nn.parallel
-import torch.optim as optim
-import torch.utils.data as data
-import torchvision.datasets as datasets
-import torchvision.transforms as transforms
 from gumi import model_utils
 from gumi.model_runner import utils
 from gumi.model_runner.model_pruner import ModelPruner
 from gumi.model_runner.parser import create_cli_parser
-from gumi.ops import *
+from gumi.ops import GroupConv2d
 from gumi.pruning.export import GroupExporter
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+# -------------------------- Logging
+
+fmt = "[%(asctime)s] {%(pathname)s:%(lineno)d} %(levelname)s: %(message)s"
+logging.basicConfig(format=fmt, level=logging.DEBUG)
 
 # CLI parser
 parser = create_cli_parser(prog="CLI tool for pruning")
@@ -86,6 +80,8 @@ args = parser.parse_args()
 os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu_id
 use_cuda = torch.cuda.is_available()
 cudnn.benchmark = True
+
+logging.info(f"use_cuda = {use_cuda}")
 
 # TODO:  Move it somewhere else
 # Follows: https://pytorch.org/docs/stable/notes/randomness.html
@@ -179,7 +175,8 @@ def create_get_num_groups_fn(G=0, MCPG=0, group_cfg=None):
                 # do some verification
                 assert F == g_cfg[name]["F"] and C == g_cfg[name]["C"]
             else:
-                G_ = 1  # HACK - we don't want to have G=0 in further processing
+                # HACK - we don't want to have G=0 in further processing
+                G_ = 1
 
         elif MCPG > 0:
             if GroupConv2d.groupable(C, F, max_channels_per_group=MCPG):
@@ -253,7 +250,6 @@ def main():
         logging.debug("NS:          {}".format(args.num_sort_iters))
         logging.debug("No weight:   {}".format(args.no_weight))
         logging.debug("Keep mask:   {}".format(args.keep_mask))
-        logging.debug("")
 
         model_pruner.prune(
             model,

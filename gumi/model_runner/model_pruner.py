@@ -1,59 +1,49 @@
 """ A pruner wrapped upon ModelRunner. """
-import os
-import sys
-import argparse
 import copy
-import time
-import shutil
-import json
 import logging
 
-logging.getLogger().setLevel(logging.DEBUG)
-
-import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.parallel
-import torch.backends.cudnn as cudnn
 import torch.optim as optim
-import torch.utils.data as data
-import torchvision.transforms as transforms
-import torchvision.datasets as datasets
-
 from gumi import model_utils
-from gumi.ops import *
-from gumi.pruning import prune_utils
 from gumi.model_runner import utils
 from gumi.model_runner.model_runner import ModelRunner
+from gumi.ops import MaskConv2d
+from gumi.pruning import prune_utils
 
 
 class ModelPruner(ModelRunner):
     """ Pruning utilities implemented. """
-
     def __init__(self, args):
         """ CTOR. """
         super().__init__(args)
 
-    def prune(self, model, G=0, get_num_groups_fn=None, use_cuda=True, **kwargs):
-        """ The main prune function. 
-    
-    Now we assume that all the modules that can be pruned
-    are replaced by MaskConv2d.
+    def prune(self,
+              model,
+              G=0,
+              get_num_groups_fn=None,
+              use_cuda=True,
+              **kwargs):
+        """ The main prune function.
 
-    We need to set:
-      G - the number of groups, decided by get_num_groups_fn
-      mask - the actual mask value of each module,
-        based on prune_utils.create_mbm_mask()
-    
-    Note:
-      model will be pruned in-place.
+        Now we assume that all the modules that can be pruned
+        are replaced by MaskConv2d.
 
-    Args:
-      model(nn.Module)
-      get_num_groups_fn(function): a function that can return
-        the group size of a given module. Its inputs are 
-        mod_name, module.
-    """
+        We need to set:
+        G - the number of groups, decided by get_num_groups_fn
+        mask - the actual mask value of each module,
+            based on prune_utils.create_mbm_mask()
+
+        Note:
+        model will be pruned in-place.
+
+        Args:
+        model(nn.Module)
+        get_num_groups_fn(function): a function that can return
+            the group size of a given module. Its inputs are 
+            mod_name, module.
+        """
         assert isinstance(model, nn.Module)
         assert (get_num_groups_fn is not None) or G > 0
 
@@ -116,9 +106,12 @@ class ModelPruner(ModelRunner):
             lr_type=self.args.lr_type,
         )
 
-    def fine_tune(
-        self, model, min_val_acc=None, return_init_acc=False, max_iters=None, **kwargs
-    ):
+    def fine_tune(self,
+                  model,
+                  min_val_acc=None,
+                  return_init_acc=False,
+                  max_iters=None,
+                  **kwargs):
         """ Fine tune a pruned model. """
         if torch.cuda.is_available():
             model.cuda()  # in case the model is not on CUDA yet.
@@ -151,9 +144,8 @@ class ModelPruner(ModelRunner):
             # TODO(13/02/2019): learning rate adjustment
             # self.adjust_learning_rate(epoch, optimizer)
 
-            logging.debug(
-                "Epoch: [%d | %d] LR: %f" % (epoch + 1, epochs, self.state["lr"])
-            )
+            logging.debug("Epoch: [%d | %d] LR: %f" %
+                          (epoch + 1, epochs, self.state["lr"]))
 
             # Run train and validation for one epoch
             train_loss, train_acc = utils.train(
@@ -182,9 +174,9 @@ class ModelPruner(ModelRunner):
             )
 
             # Append message to Logger
-            self.logger.append(
-                [self.state["lr"], train_loss, 0.0, val_loss, train_acc, val_acc]
-            )
+            self.logger.append([
+                self.state["lr"], train_loss, 0.0, val_loss, train_acc, val_acc
+            ])
 
             # Update best accuracy
             is_best = val_acc > best_acc
@@ -199,7 +191,8 @@ class ModelPruner(ModelRunner):
                 "best_acc": best_acc,
                 "optimizer": optimizer.state_dict(),
             }
-            utils.save_checkpoint(checkpoint_state, is_best, self.args.checkpoint)
+            utils.save_checkpoint(checkpoint_state, is_best,
+                                  self.args.checkpoint)
 
             if min_val_acc is not None and val_acc >= min_val_acc:
                 break
@@ -209,7 +202,8 @@ class ModelPruner(ModelRunner):
 
         # Finalising
         self.logger.close()
-        logging.info("Best accuracy while fine-tuning: {:.2f}%".format(best_acc))
+        logging.info(
+            "Best accuracy while fine-tuning: {:.2f}%".format(best_acc))
 
         if not return_init_acc:
             return best_acc, best_model

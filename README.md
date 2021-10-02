@@ -12,7 +12,7 @@ This is the codebase for paper [Efficient Structured Pruning and Architecture Se
 ![Pruning objective](https://user-images.githubusercontent.com/8768839/135343917-3c03bba9-2cfe-4774-9c29-038d9c34f288.png)
 
 
-- [GConv Prune](#gconv-prune)
+- [`gconv-prune`: structural pruning based on group convolution](#gconv-prune-structural-pruning-based-on-group-convolution)
   - [Installation](#installation)
   - [Usage](#usage)
     - [Training baseline models](#training-baseline-models)
@@ -30,6 +30,10 @@ conda env create -f environment.yml
 ```
 
 Then use `pip` to install the core package `gumi`, which implements the algorithm mentioned in our paper.
+
+```shell
+python -m pip install -e .
+```
 
 ## Usage
 
