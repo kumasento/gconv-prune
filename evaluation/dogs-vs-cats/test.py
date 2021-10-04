@@ -2,40 +2,28 @@
 
 import argparse
 import logging
-import os
 
 import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
-import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
 from torchvision import models
 from tqdm import tqdm
 
-from utils import DogCatDataset, get_device
+from utils import get_datasets, get_device
 
 fmt = "[%(asctime)s] {%(pathname)s:%(lineno)d} %(levelname)s: %(message)s"
 logging.basicConfig(format=fmt, level=logging.DEBUG)
 
 
 def get_dataloader(dataset_dir: str) -> DataLoader:
-    path = os.path.join(dataset_dir, 'test1')
-    images = os.listdir(path)
+    datasets = get_datasets(dataset_dir)
 
-    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                     std=[0.229, 0.224, 0.225])
-
-    dataset = DogCatDataset(
-        path, images,
-        transforms.Compose([
-            transforms.Resize(256),
-            transforms.CenterCrop(224),
-            transforms.ConvertImageDtype(torch.float32),
-            normalize,
-        ]))
-
-    return DataLoader(dataset, batch_size=32, shuffle=False, num_workers=8)
+    return DataLoader(datasets['test'],
+                      batch_size=32,
+                      shuffle=False,
+                      num_workers=8)
 
 
 def main():

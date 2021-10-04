@@ -2,7 +2,6 @@
 """ Pruning CLI tool. """
 
 import copy
-import json
 import logging
 import os
 
@@ -10,11 +9,10 @@ import numpy as np
 import torch
 import torch.backends.cudnn as cudnn
 import torch.nn.parallel
-from gumi import model_utils
+from gumi import group_utils, model_utils
 from gumi.model_runner import utils
 from gumi.model_runner.model_pruner import ModelPruner
 from gumi.model_runner.parser import create_cli_parser
-from gumi.ops import GroupConv2d
 from gumi.pruning.export import GroupExporter
 
 # -------------------------- Logging
@@ -118,7 +116,7 @@ def create_update_state_dict_fn(no_mask=False, condensenet=False):
 
     def update_state_dict(state_dict):
         """ Here are several update rules:
-        
+
         - In this new script, we won't have "module." prefix
         - There won't be any '.conv2d' in the module
         """
@@ -151,47 +149,6 @@ def create_update_state_dict_fn(no_mask=False, condensenet=False):
         return state_dict_
 
     return update_state_dict
-
-
-def create_get_num_groups_fn(G=0, MCPG=0, group_cfg=None):
-    """ Create the hook function for getting 
-    the number of groups for a given module. """
-
-    g_cfg = None
-    if isinstance(group_cfg, str) and os.path.isfile(group_cfg):
-        with open(group_cfg, "r") as f:
-            g_cfg = json.load(f)
-
-    def get_num_groups(name, mod):
-        G_ = G  # choose G in the beginning
-
-        W = model_utils.get_weight_parameter(mod)
-        F, C = W.shape[:2]
-
-        # how to override G_
-        if g_cfg is not None:
-            if name in g_cfg:
-                G_ = g_cfg[name]["G"]
-                # do some verification
-                assert F == g_cfg[name]["F"] and C == g_cfg[name]["C"]
-            else:
-                # HACK - we don't want to have G=0 in further processing
-                G_ = 1
-
-        elif MCPG > 0:
-            if GroupConv2d.groupable(C, F, max_channels_per_group=MCPG):
-                G_ = GroupConv2d.get_num_groups(C,
-                                                F,
-                                                max_channels_per_group=MCPG)
-            else:
-                logging.warn(
-                    "Module {} is not groupable under MCPG={}, set its G to 1".
-                    format(name, MCPG))
-                G_ = 1
-
-        return G_
-
-    return get_num_groups
 
 
 def main():
@@ -241,9 +198,8 @@ def main():
     # run pruning (update the content of mask)
     logging.info("==> Pruning model ...")
     if not args.skip_prune:
-        get_num_groups = create_get_num_groups_fn(G=args.num_groups,
-                                                  MCPG=args.mcpg,
-                                                  group_cfg=args.group_cfg)
+        get_num_groups = group_utils.create_get_num_groups_fn(
+            G=args.num_groups, MCPG=args.mcpg, group_cfg=args.group_cfg)
 
         logging.debug("Pruning configuration:")
         logging.debug("PERM:        {}".format(args.perm))

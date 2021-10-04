@@ -1,20 +1,17 @@
 """ Code migrated from evaluation/early_stage/group_exporter.py """
-from collections import OrderedDict
 import logging
-
-logging.getLogger().setLevel(logging.DEBUG)
 
 import torch
 import torch.nn as nn
-
-from gumi import model_utils
-from gumi.ops import *
+from gumi import group_utils
+from gumi.ops import (GroupConv2d, MaskConv2d, MMPointwiseConv2d,
+                      SparseGroupConv2d)
 
 
 class GroupExporter(object):
     @staticmethod
     def export_to_group_conv2d(child):
-        wg, ind_in, ind_out = model_utils.get_group_parameters(child, child.G)
+        wg, ind_in, ind_out = group_utils.get_group_parameters(child, child.G)
 
         g_conv = GroupConv2d.create_from_mask_conv2d(child)
         g_conv.conv2d.weight.data = torch.from_numpy(wg).float()
@@ -35,18 +32,17 @@ class GroupExporter(object):
         assert child.G > 1
         assert child.bias is None
 
-        mod = SparseGroupConv2d(
-            child.in_channels, child.out_channels, 1, groups=child.G, bias=False
-        )
+        mod = SparseGroupConv2d(child.in_channels,
+                                child.out_channels,
+                                1,
+                                groups=child.G,
+                                bias=False)
         W = child.weight
         W = torch.mul(W.view(W.shape[0], W.shape[1]), child.mask)
         mod.update_weight(W)
 
-        logging.info(
-            "==> Weights sparsity: {:.2f}%".format(
-                mod.weight._nnz() / mod.weight.numel() * 100
-            )
-        )
+        logging.info("==> Weights sparsity: {:.2f}%".format(
+            mod.weight._nnz() / mod.weight.numel() * 100))
 
         return mod
 
@@ -59,7 +55,10 @@ class GroupExporter(object):
         assert child.padding[0] == 0
         assert child.bias is None
 
-        mod = MMPointwiseConv2d(child.in_channels, child.out_channels, 1, bias=False)
+        mod = MMPointwiseConv2d(child.in_channels,
+                                child.out_channels,
+                                1,
+                                bias=False)
         W = child.weight
         W = torch.mul(W.view(W.shape[0], W.shape[1]), child.mask)
         mod.weight.data = W
@@ -83,24 +82,26 @@ class GroupExporter(object):
             bias=child.bias,
         )
 
-        conv.weight.data = torch.mul(
-            child.weight, child.mask.view(*child.mask.shape, 1, 1)
-        )
+        conv.weight.data = torch.mul(child.weight,
+                                     child.mask.view(*child.mask.shape, 1, 1))
         if conv.bias:
             conv.bias.data = child.bias
 
         return conv
 
     @staticmethod
-    def export(
-        model, use_cuda=True, sparse=False, std=False, mm=False, min_sparse_channels=512
-    ):
+    def export(model,
+               use_cuda=True,
+               sparse=False,
+               std=False,
+               mm=False,
+               min_sparse_channels=512):
         """ Export function.
-    
-      Takes the model as input, returns a GroupConv2d based model
 
-      TODO: this function is very similar with apply_mask
-    """
+        Takes the model as input, returns a GroupConv2d based model
+
+        TODO: this function is very similar with apply_mask
+        """
 
         for name, mod in model.named_modules():
             name_to_mod = {}
@@ -111,40 +112,30 @@ class GroupExporter(object):
                     if child.G > 1:
                         assert len(list(child.children())) == 0
 
-                        if (
-                            sparse
-                            and child.kernel_size == 1
-                            and child.padding[0] == 0
-                            and child.stride[0] == 1
-                            and child.in_channels >= min_sparse_channels
-                            and child.out_channels >= min_sparse_channels
-                        ):
+                        if (sparse and child.kernel_size == 1
+                                and child.padding[0] == 0
+                                and child.stride[0] == 1
+                                and child.in_channels >= min_sparse_channels
+                                and child.out_channels >= min_sparse_channels):
                             logging.info(
-                                "==> Exporting mod {} to sparse pointwise ...".format(
-                                    name + "." + child_name
-                                )
-                            )
-                            mod_ = GroupExporter.export_to_sparse_pointwise(child)
+                                "==> Exporting mod {} to sparse pointwise ...".
+                                format(name + "." + child_name))
+                            mod_ = GroupExporter.export_to_sparse_pointwise(
+                                child)
                         elif std:
                             logging.info(
-                                "==> Exporting mod {} to normal conv2d ...".format(
-                                    name + "." + child_name
-                                )
-                            )
-                            mod_ = GroupExporter.export_to_std_conv2d(child, mm=mm)
+                                "==> Exporting mod {} to normal conv2d ...".
+                                format(name + "." + child_name))
+                            mod_ = GroupExporter.export_to_std_conv2d(child,
+                                                                      mm=mm)
                         else:
                             logging.info(
-                                "==> Exporting mod {} to group conv2d ...".format(
-                                    name + "." + child_name
-                                )
-                            )
+                                "==> Exporting mod {} to group conv2d ...".
+                                format(name + "." + child_name))
                             mod_ = GroupExporter.export_to_group_conv2d(child)
 
                         name_to_mod[child_name] = mod_
                     else:
-                        # logging.info(
-                        #     '==> Exporting mod {} to normal conv2d without groups ...'.
-                        #     format(name + '.' + child_name))
                         conv = nn.Conv2d(
                             child.in_channels,
                             child.out_channels,

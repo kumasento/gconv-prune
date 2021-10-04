@@ -7,6 +7,7 @@ import torch.nn as nn
 import torch.nn.parallel
 import torch.optim as optim
 from gumi import model_utils
+from gumi.config import GumiConfig
 from gumi.model_runner import utils
 from gumi.model_runner.model_runner import ModelRunner
 from gumi.ops import MaskConv2d
@@ -15,7 +16,7 @@ from gumi.pruning import prune_utils
 
 class ModelPruner(ModelRunner):
     """ Pruning utilities implemented. """
-    def __init__(self, args):
+    def __init__(self, args: GumiConfig):
         """ CTOR. """
         super().__init__(args)
 
@@ -79,8 +80,8 @@ class ModelPruner(ModelRunner):
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
         # prepare
-        best_acc = 0
-        epochs = self.args.epochs
+        # best_acc = 0
+        # epochs = self.args.epochs
         base_lr = self.args.lr
         optimizer = optim.SGD(
             model.parameters(),
@@ -129,13 +130,12 @@ class ModelPruner(ModelRunner):
         )
 
         # validation in the beginning
-        val_loss, val_acc = utils.validate(
-            self.val_loader,
-            model,
-            self.criterion,
-            gpu=device,
-            print_freq=self.args.print_freq,
-        )
+        val_loss, val_acc = utils.validate(self.val_loader,
+                                           model,
+                                           self.criterion,
+                                           gpu=device,
+                                           print_freq=self.args.print_freq,
+                                           **kwargs)
         init_acc = val_acc
         best_acc = val_acc
         best_model = None
@@ -163,15 +163,14 @@ class ModelPruner(ModelRunner):
                 base_lr=self.args.lr,
                 gamma=self.args.gamma,
                 lr_type=self.args.lr_type,
-            )
+                **kwargs)
 
-            val_loss, val_acc = utils.validate(
-                self.val_loader,
-                model,
-                self.criterion,
-                gpu=device,
-                print_freq=self.args.print_freq,
-            )
+            val_loss, val_acc = utils.validate(self.val_loader,
+                                               model,
+                                               self.criterion,
+                                               gpu=device,
+                                               print_freq=self.args.print_freq,
+                                               **kwargs)
 
             # Append message to Logger
             self.logger.append([

@@ -24,3 +24,5 @@ python3 test.py -d $DATASET_DIR -c $CHECKPOINT_DIR/resnet50.ckpt
 ```
 
 ## Prune
+
+Load the trained model from the previous checkpoints, prune it, and run evaluation on the new dataset.

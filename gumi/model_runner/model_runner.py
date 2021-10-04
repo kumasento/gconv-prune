@@ -1,38 +1,27 @@
 """ Base class for model runners. """
 
-import os
-import sys
-import argparse
-import copy
-import time
-import shutil
-import json
 import logging
+import os
+from dataclasses import asdict
 
-import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.parallel
-import torch.backends.cudnn as cudnn
 import torch.optim as optim
-import torch.utils.data as data
-import torchvision.transforms as transforms
-import torchvision.datasets as datasets
-
-import gumi.model_runner.utils as utils  # from the current directory
+from gumi.config import GumiConfig
+from gumi.model_runner import utils
 from gumi.model_runner.logger import Logger
 
 
-class ModelRunner(object):
+class ModelRunner:
     """ Base class for various utilities that may need to
     train/evaluate a PyTorch model. """
-
-    def __init__(self, args):
+    def __init__(self, args: GumiConfig):
         """ CTOR.
 
-    Args:
-      args(Namespace): CLI arguments
-    """
+        Args:
+            args(Namespace): CLI arguments
+        """
         # self.validate_args(args)
         self.args = args
 
@@ -62,12 +51,13 @@ class ModelRunner(object):
 
         # default
         self.criterion = nn.CrossEntropyLoss()
-        self.state = {k: v for k, v in args._get_kwargs()}
+        self.state = asdict(args)
         self.title = ""
         self.checkpoint = args.checkpoint
 
         # HACK
-        if isinstance(self.checkpoint, str):
+        if (isinstance(self.checkpoint, str)
+                and not os.path.isfile(self.checkpoint)):
             os.makedirs(self.checkpoint, exist_ok=True)
             self.logger = self.get_logger(args)
 
@@ -81,11 +71,9 @@ class ModelRunner(object):
         s += "Checkpoint:  {}\n".format(args.checkpoint)
         s += "Resume:      {}\n".format(args.resume)
         s += "Batch:       {} (train) {} (test)\n".format(
-            args.train_batch, args.test_batch
-        )
+            args.train_batch, args.test_batch)
         s += 'Group:       G={} MCPG={} CFG="{}"\n'.format(
-            args.num_groups, args.mcpg, args.group_cfg
-        )
+            args.num_groups, args.mcpg, args.group_cfg)
         s += 'Ind Type:    "{}"\n'.format(args.ind)
         s += "\n"
 
@@ -95,24 +83,28 @@ class ModelRunner(object):
     def validate_args(self, args):
         """ Do some validation before actual work starts. """
         assert isinstance(args.dataset, str)
-        assert isinstance(args.dataset_dir, str) and os.path.isdir(args.dataset_dir)
-        assert (
-            args.num_groups >= 1 or args.mcpg >= 1 or os.path.isfile(args.group_cfg)
-        ), "You should provide at least one group config"
+        assert (isinstance(args.dataset_dir, str)
+                and os.path.isdir(args.dataset_dir))
+        assert (args.num_groups >= 1 or args.mcpg >= 1 or os.path.isfile(
+            args.group_cfg)), "You should provide at least one group config"
 
     def get_logger(self, args):
         """ Create logger. """
-        logger = Logger(os.path.join(args.checkpoint, "log.txt"), title=self.title)
-        logger.set_names(
-            [
-                "Learning Rate",
-                "Train Loss",
-                "Reg Loss",
-                "Valid Loss",
-                "Train Acc.",
-                "Valid Acc.",
-            ]
-        )
+        if os.path.isdir(args.checkpoint):
+            log_file = os.path.join(args.checkpoint, "log.txt")
+        else:
+            log_file = os.path.join(os.path.dirname(args.checkpoint),
+                                    "log.txt")
+
+        logger = Logger(log_file, title=self.title)
+        logger.set_names([
+            "Learning Rate",
+            "Train Loss",
+            "Reg Loss",
+            "Valid Loss",
+            "Train Acc.",
+            "Valid Acc.",
+        ])
         return logger
 
     def load_model(self, **kwargs):
@@ -122,25 +114,12 @@ class ModelRunner(object):
         else:
             checkpoint_file_name = "model_best.pth.tar"
 
-        # logging.info(
-        #     '==> Loading model from checkpoint: {}'.format(checkpoint_file_name))
-
-        return utils.load_model(
-            self.args.arch,
-            self.args.dataset,
-            resume=self.args.resume,
-            pretrained=self.args.pretrained,
-            checkpoint_file_name=checkpoint_file_name,
-            **kwargs
-        )
-
-    # def train(self, model):
-    #   """ Train a given model on prepared dataset. """
-    #   return utils.train(
-    #       self.train_loader,
-    #       model,
-    #       self.criterion,
-    #       print_freq=self.args.print_freq)
+        return utils.load_model(self.args.arch,
+                                self.args.dataset,
+                                resume=self.args.resume,
+                                pretrained=self.args.pretrained,
+                                checkpoint_file_name=checkpoint_file_name,
+                                **kwargs)
 
     def print_optimizer(self, optimizer):
         """ Print optimizer state. """
@@ -177,17 +156,14 @@ class ModelRunner(object):
 
         logging.info(
             "==> Started training, total epochs {}, start from {}".format(
-                epochs, self.args.start_epoch
-            )
-        )
+                epochs, self.args.start_epoch))
         self.print_optimizer(optimizer)
 
         for epoch in range(self.args.start_epoch, epochs):
             # TODO(13/02/2019): learning rate adjustment
             # self.adjust_learning_rate(epoch, optimizer)
-            logging.info(
-                "Epoch: [%5d | %5d] LR: %f" % (epoch + 1, epochs, self.state["lr"])
-            )
+            logging.info("Epoch: [%5d | %5d] LR: %f" %
+                         (epoch + 1, epochs, self.state["lr"]))
 
             # Run train and validation for one epoch
             train_loss, train_acc = utils.train(
@@ -205,14 +181,15 @@ class ModelRunner(object):
                 lr_type=self.args.lr_type,
             )
 
-            val_loss, val_acc = utils.validate(
-                self.val_loader, model, self.criterion, print_freq=self.args.print_freq
-            )
+            val_loss, val_acc = utils.validate(self.val_loader,
+                                               model,
+                                               self.criterion,
+                                               print_freq=self.args.print_freq)
 
             # Append message to Logger
-            self.logger.append(
-                [self.state["lr"], train_loss, 0.0, val_loss, train_acc, val_acc]
-            )
+            self.logger.append([
+                self.state["lr"], train_loss, 0.0, val_loss, train_acc, val_acc
+            ])
 
             # Update best accuracy
             is_best = val_acc > best_acc
@@ -225,7 +202,8 @@ class ModelRunner(object):
                 "best_acc": best_acc,
                 "optimizer": optimizer.state_dict(),
             }
-            utils.save_checkpoint(checkpoint_state, is_best, self.args.checkpoint)
+            utils.save_checkpoint(checkpoint_state, is_best,
+                                  self.args.checkpoint)
 
         # Finalising
         self.logger.close()
@@ -233,18 +211,20 @@ class ModelRunner(object):
 
         return best_acc
 
-    def validate(self, model):
+    def validate(self, model, **kwargs):
         """ Validate the performance of a model. """
-        return utils.validate(
-            self.val_loader, model, self.criterion, print_freq=self.args.print_freq
-        )
+        return utils.validate(self.val_loader,
+                              model,
+                              self.criterion,
+                              print_freq=self.args.print_freq,
+                              **kwargs)
 
     def adjust_learning_rate(self, epoch, optimizer, batch=None, batches=None):
         """ Adjust learning rate.
-    
-    Args:
-      epoch(int): current epoch
-    """
+
+            Args:
+            epoch(int): current epoch
+        """
         args = self.args
 
         utils.adjust_learning_rate(

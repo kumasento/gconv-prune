@@ -6,19 +6,17 @@ import logging
 import os
 import random
 import time
-from collections import defaultdict
-from typing import Dict, Iterable, List, Tuple
+from typing import Dict, List, Tuple
 
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
 import torchvision
-import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
 from torchvision import models
 
-from utils import DogCatDataset, get_device
+from utils import get_datasets, get_device
 
 fmt = "[%(asctime)s] {%(pathname)s:%(lineno)d} %(levelname)s: %(message)s"
 logging.basicConfig(format=fmt, level=logging.DEBUG)
@@ -30,55 +28,15 @@ def set_random_seed(seed: int):
     np.random.seed(seed)
 
 
-def get_num_images_per_class(images: Iterable[str]) -> Dict[str, int]:
-    count = defaultdict(lambda: 0)
-    for img in images:
-        count[img.split('.')[0]] += 1
-    return dict(count)
-
-
 def get_dataloaders(dataset_dir: str,
                     val_split: float = 0.1) -> Dict[str, DataLoader]:
-    # List all the images and shuffle them.
-    images = os.listdir(os.path.join(dataset_dir, 'train'))
-    random.shuffle(images)
+    datasets = get_datasets(dataset_dir, val_split=val_split)
 
-    N = len(images)
-    test_images = images[:int(N * val_split)]
-    train_images = images[int(N * val_split):]
-
-    logging.info(f'Classes in train: {get_num_images_per_class(train_images)}')
-    logging.info(
-        f'Classes in validation: {get_num_images_per_class(test_images)}')
-
-    assert set(test_images).isdisjoint(train_images)
-
-    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                     std=[0.229, 0.224, 0.225])
-
-    train_data = DogCatDataset(
-        os.path.join(dataset_dir, 'train'), train_images,
-        transforms.Compose([
-            transforms.RandomResizedCrop(224),
-            transforms.RandomHorizontalFlip(),
-            transforms.ConvertImageDtype(torch.float32),
-            normalize,
-        ]))
-
-    test_data = DogCatDataset(
-        os.path.join(dataset_dir, 'train'), test_images,
-        transforms.Compose([
-            transforms.Resize(256),
-            transforms.CenterCrop(224),
-            transforms.ConvertImageDtype(torch.float32),
-            normalize,
-        ]))
-
-    train_dataloader = DataLoader(train_data,
+    train_dataloader = DataLoader(datasets['train'],
                                   batch_size=32,
                                   shuffle=True,
                                   num_workers=8)
-    test_dataloader = DataLoader(test_data,
+    test_dataloader = DataLoader(datasets['val'],
                                  batch_size=32,
                                  shuffle=True,
                                  num_workers=8,
@@ -235,7 +193,7 @@ def main():
         os.mkdir(args.checkpoint_dir)
     ckpt_path = os.path.join(args.checkpoint_dir, 'resnet50.ckpt')
     logging.info(f"Saving trained model to {ckpt_path}")
-    torch.save(model.state_dict(), ckpt_path)
+    torch.save({'state_dict': model.state_dict()}, ckpt_path)
 
 
 if __name__ == '__main__':

@@ -4,17 +4,13 @@ import json
 import logging
 import math
 import os
-import random
 import shutil
-import sys
 import time
-import warnings
+from typing import Dict, Union
 
 import torch
-import torch.backends.cudnn as cudnn
 import torch.nn as nn
 import torch.nn.parallel
-import torch.optim as optim
 import torch.utils.data as data
 import torchvision.datasets as datasets
 import torchvision.models as imagenet_models
@@ -23,7 +19,15 @@ from gumi import model_utils
 from gumi import \
     models as cifar_models  # a module contains all supported models
 from gumi.models import imagenet as custom_imagenet_models
-from gumi.ops import *
+from gumi.ops import GroupConv2d, MaskConv2d, SparseGroupConv2d
+from torch.utils.data import Dataset
+
+AVAILABLE_DATASET_NAMES = [
+    "cifar10",
+    "cifar100",
+    "imagenet",
+    "cub200",
+]
 
 #######################################
 # Models                              #
@@ -59,11 +63,11 @@ def apply_sparse(model):
 def apply_mask(model, excludes=None, use_cuda=True):
     """ Updated Conv2d modules in model to MaskConv2d.
   
-  NOTE: we need to override a Conv2d module by MaskConv2d from
-    its parent's _modules dict.
-  
-  This module will be updated in-place.
-  """
+    NOTE: we need to override a Conv2d module by MaskConv2d from
+        its parent's _modules dict.
+    
+    This module will be updated in-place.
+    """
     assert isinstance(model, nn.Module)
 
     # the name of the module to be excluded.
@@ -99,21 +103,20 @@ def apply_mask(model, excludes=None, use_cuda=True):
             mod._modules[child_name] = child
 
 
-def get_model_num_ops(model, dataset):
+def get_model_num_ops(model, dataset: Union[str, Dataset]):
     """ We map dataset to specific input workload. """
     input_size = None
-    if dataset.startswith("cifar"):
+
+    if isinstance(dataset, str) and dataset.startswith("cifar"):
         input_size = (1, 3, 32, 32)
-    elif dataset in IMAGENET_DATASETS:
-        input_size = (1, 3, 224, 224)
     else:
-        raise ValueError("Cannot recognise dataset {}".format(dataset))
+        input_size = (1, 3, 224, 224)
 
     return model_utils.get_model_num_ops(model, input_size)
 
 
 def load_model(arch,
-               dataset,
+               dataset: Union[str, Dataset],
                resume=None,
                pretrained=False,
                update_model_fn=None,
@@ -124,22 +127,23 @@ def load_model(arch,
                checkpoint_file_name="checkpoint.pth.tar",
                **kwargs):
     """ Load a model.
-  
-    You can either load a CIFAR model from gumi.models
-    or an ImageNet model from torchvision.models
 
-    Additional parameters in kwargs are passed only to cifar models.
+        You can either load a CIFAR model from gumi.models
+        or an ImageNet model from torchvision.models
 
-    You can use update_model_fn and update_state_dict_fn
-    to configure those models undesirable.
+        Additional parameters in kwargs are passed only to cifar models.
 
-    NOTE: fine_tune won't control whether to run replace_classifier.
-  """
+        You can use update_model_fn and update_state_dict_fn
+        to configure those models undesirable.
+
+        NOTE: fine_tune won't control whether to run replace_classifier.
+    """
     # construct the model
     num_classes = get_num_classes(dataset)
-    if dataset.startswith("cifar"):
+
+    if isinstance(dataset, str) and dataset.startswith("cifar"):
         model = cifar_models.__dict__[arch](num_classes=num_classes, **kwargs)
-    elif dataset in IMAGENET_DATASETS:
+    else:
         # NOTE: when creating this model, all its contents are
         # already initialised. Won't go to the resume branch.
         if arch in imagenet_models.__dict__:
@@ -186,7 +190,7 @@ def load_model(arch,
         model.load_state_dict(state_dict, strict=not fine_tune)
 
     if use_cuda:
-        if data_parallel:
+        if data_parallel and torch.cuda.device_count() > 1:
             model = torch.nn.DataParallel(model)
         model = model.cuda()
 
@@ -317,8 +321,15 @@ def get_imagenet_dataset(is_training=False, dataset_dir=None, **kwargs):
         )
 
 
-def get_num_classes(dataset):
+def get_num_classes(dataset: Union[str, Dict[str, Dataset]]) -> int:
     """ NOTE: Need to update this when adding a new dataset. """
+
+    if isinstance(dataset, dict):
+        dataset_ = next(iter(dataset.values()))
+        if hasattr(dataset_, 'num_classes'):
+            # HACK: patch the dataset object to pass in the num_classes info.
+            return dataset_.num_classes
+
     if dataset == "cifar10":
         return 10
     if dataset == "cifar100":
@@ -331,21 +342,27 @@ def get_num_classes(dataset):
     raise ValueError("dataset cannot be recognised: {}".format(dataset))
 
 
-def get_dataset(dataset, **kwargs):
+def get_dataset(dataset: Union[str, Dict[str, Dataset]],
+                is_training=False,
+                **kwargs) -> Dataset:
     """ Get the dataset object based on args.
-  
-    NOTE: if need more datasets, just add more branches.
-  """
+
+        NOTE: if need more datasets, just add more branches.
+    """
+
+    # No need to create a dataset.
+    if isinstance(dataset, dict):
+        return dataset['train' if is_training else 'val']
 
     # Get the dataset class
+    assert isinstance(dataset, str)
     if dataset.startswith("cifar"):
         return get_cifar_dataset(dataset, **kwargs)
     elif dataset in ["imagenet", "cub200"]:
         return get_imagenet_dataset(**kwargs)
     else:
         raise ValueError(
-            'dataset should be one of "cifar10", "cifar100", "imagenet", "cub200", got: {}'
-            .format(dataset))
+            f'dataset should be in {AVAILABLE_DATASET_NAMES}, got: {dataset}')
 
 
 def get_data_loader(dataset,
@@ -417,6 +434,7 @@ def train(train_loader,
           gpu=None,
           max_iters=None,
           no_update=False,
+          record_top5=True,
           **kwargs):
     """ Major training function. """
     batch_time = AverageMeter()
@@ -448,10 +466,15 @@ def train(train_loader,
         loss = criterion(output, target)
 
         # measure accuracy and record loss
-        acc1, acc5 = accuracy(output, target, topk=(1, 5))
         losses.update(loss.item(), input.size(0))
-        top1.update(acc1[0], input.size(0))
-        top5.update(acc5[0], input.size(0))
+        if record_top5:
+            acc1, acc5 = accuracy(output, target, topk=(1, 5))
+            top1.update(acc1[0].item(), input.size(0))
+            top5.update(acc5[0].item(), input.size(0))
+        else:
+            acc1 = accuracy(output, target, topk=(1, ))
+            top1.update(acc1[0].item(), input.size(0))
+            top5.update(acc1[0].item(), input.size(0))
 
         # compute gradient and do SGD step
         optimizer.zero_grad()
@@ -488,7 +511,12 @@ def train(train_loader,
     return losses.avg, top1.avg
 
 
-def validate(val_loader, model, criterion, print_freq=100, gpu=None):
+def validate(val_loader,
+             model,
+             criterion,
+             print_freq=100,
+             gpu=None,
+             record_top5=True):
     batch_time = AverageMeter()
     losses = AverageMeter()
     top1 = AverageMeter()
@@ -509,10 +537,15 @@ def validate(val_loader, model, criterion, print_freq=100, gpu=None):
             loss = criterion(output, target)
 
             # measure accuracy and record loss
-            acc1, acc5 = accuracy(output, target, topk=(1, 5))
             losses.update(loss.item(), input.size(0))
-            top1.update(acc1[0], input.size(0))
-            top5.update(acc5[0], input.size(0))
+            if record_top5:
+                acc1, acc5 = accuracy(output, target, topk=(1, 5))
+                top1.update(acc1[0].item(), input.size(0))
+                top5.update(acc5[0].item(), input.size(0))
+            else:
+                acc1 = accuracy(output, target, topk=(1, ))
+                top1.update(acc1[0].item(), input.size(0))
+                top5.update(acc1[0].item(), input.size(0))
 
             # measure elapsed time
             batch_time.update(time.time() - end)
@@ -629,7 +662,8 @@ def create_get_num_groups_fn(G=0,
                         "C"], "C={} does not match cfg={}".format(
                             C, g_cfg[name]["C"])
             else:
-                G_ = 1  # HACK - we don't want to have G=0 in further processing
+                # HACK - we don't want to have G=0 in further processing
+                G_ = 1
 
         elif MCPG > 0:
             if GroupConv2d.groupable(C, F, max_channels_per_group=MCPG):
