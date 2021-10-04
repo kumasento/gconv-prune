@@ -18,10 +18,7 @@ def create_cli_parser(prog=""):
         default=0,
         help="Uniform number of groups to be pruned.",
     )
-    parser.add_argument("--mcpg",
-                        type=int,
-                        default=0,
-                        help="Max channels per group.")
+    parser.add_argument("--mcpg", type=int, default=0, help="Max channels per group.")
     parser.add_argument(
         "--group-cfg",
         type=str,
@@ -37,30 +34,26 @@ def create_cli_parser(prog=""):
     )
 
     # mask
-    parser.add_argument("--perm",
-                        type=str,
-                        default="GRPS",
-                        help="Permutation when building MBM mask.")
-    parser.add_argument("--num-sort-iters",
-                        type=int,
-                        default=10,
-                        help="Number of heuristic iterations.")
+    parser.add_argument(
+        "--perm", type=str, default="GRPS", help="Permutation when building MBM mask."
+    )
+    parser.add_argument(
+        "--num-sort-iters", type=int, default=10, help="Number of heuristic iterations."
+    )
 
     # regularization
-    parser.add_argument("--reg-scale",
-                        type=float,
-                        default=0.0,
-                        help="Regularization scale, can be 0.0")
+    parser.add_argument(
+        "--reg-scale", type=float, default=0.0, help="Regularization scale, can be 0.0"
+    )
     parser.add_argument(
         "--reg-epochs",
         type=int,
         default=0,
         help="Number of epochs for regularization, by default 0",
     )
-    parser.add_argument("--reg-lr",
-                        type=float,
-                        default=1e-3,
-                        help="Regularization fixed learning rate.")
+    parser.add_argument(
+        "--reg-lr", type=float, default=1e-3, help="Regularization fixed learning rate."
+    )
 
     # no weight
     parser.add_argument(
@@ -94,10 +87,9 @@ def create_cli_parser(prog=""):
     )
 
     # where to store the new checkpoint file
-    parser.add_argument("-c",
-                        "--checkpoint",
-                        type=str,
-                        help="The path to the checkpoint file.")
+    parser.add_argument(
+        "-c", "--checkpoint", type=str, help="The path to the checkpoint file."
+    )
 
     parser.add_argument(
         "--resume",
@@ -123,14 +115,12 @@ def create_cli_parser(prog=""):
         metavar="ARCH",
         default="resnet110",
         choices=model_names,
-        help="model architecture: " + ", ".join(model_names) +
-        "(default: resnet110)",
+        help="model architecture: " + ", ".join(model_names) + "(default: resnet110)",
     )
     parser.add_argument("-d", "--dataset", default="cifar10", type=str)
-    parser.add_argument("--dataset-dir",
-                        default="data",
-                        help="Path to dataset",
-                        type=str)
+    parser.add_argument(
+        "--dataset-dir", default="data", help="Path to dataset", type=str
+    )
     parser.add_argument(
         "-j",
         "--workers",
@@ -154,16 +144,12 @@ def create_cli_parser(prog=""):
         metavar="N",
         help="manual epoch number (useful on restarts)",
     )
-    parser.add_argument("--train-batch",
-                        default=128,
-                        type=int,
-                        metavar="N",
-                        help="train batch size")
-    parser.add_argument("--test-batch",
-                        default=100,
-                        type=int,
-                        metavar="N",
-                        help="test batch size")
+    parser.add_argument(
+        "--train-batch", default=128, type=int, metavar="N", help="train batch size"
+    )
+    parser.add_argument(
+        "--test-batch", default=100, type=int, metavar="N", help="test batch size"
+    )
     parser.add_argument(
         "--lr",
         "--learning-rate",
@@ -172,10 +158,9 @@ def create_cli_parser(prog=""):
         metavar="LR",
         help="initial learning rate",
     )
-    parser.add_argument("--lr-type",
-                        default="multistep",
-                        type=str,
-                        help="Type of learning rate decay")
+    parser.add_argument(
+        "--lr-type", default="multistep", type=str, help="Type of learning rate decay"
+    )
     parser.add_argument(
         "--drop",
         "--dropout",
@@ -197,11 +182,9 @@ def create_cli_parser(prog=""):
         default=0.1,
         help="LR is multiplied by gamma on schedule.",
     )
-    parser.add_argument("--momentum",
-                        default=0.9,
-                        type=float,
-                        metavar="M",
-                        help="momentum")
+    parser.add_argument(
+        "--momentum", default=0.9, type=float, metavar="M", help="momentum"
+    )
     parser.add_argument(
         "--weight-decay",
         "--wd",
@@ -210,19 +193,17 @@ def create_cli_parser(prog=""):
         metavar="W",
         help="weight decay (default: 1e-4)",
     )
-    parser.add_argument("--gpu-id",
-                        default="0",
-                        type=str,
-                        help="id(s) for CUDA_VISIBLE_DEVICES")
+    parser.add_argument(
+        "--gpu-id", default="0", type=str, help="id(s) for CUDA_VISIBLE_DEVICES"
+    )
     parser.add_argument(
         "--no-bar",
         default=False,
         action="store_true",
         help="Whether to show bar progress.",
     )
-    parser.add_argument("--print-freq",
-                        default=50,
-                        type=int,
-                        help="Log output frequency")
+    parser.add_argument(
+        "--print-freq", default=50, type=int, help="Log output frequency"
+    )
 
     return parser

@@ -28,28 +28,26 @@ def set_random_seed(seed: int):
     np.random.seed(seed)
 
 
-def get_dataloaders(dataset_dir: str,
-                    val_split: float = 0.1) -> Dict[str, DataLoader]:
+def get_dataloaders(dataset_dir: str, val_split: float = 0.1) -> Dict[str, DataLoader]:
     datasets = get_datasets(dataset_dir, val_split=val_split)
 
-    train_dataloader = DataLoader(datasets['train'],
-                                  batch_size=32,
-                                  shuffle=True,
-                                  num_workers=8)
-    test_dataloader = DataLoader(datasets['val'],
-                                 batch_size=32,
-                                 shuffle=True,
-                                 num_workers=8,
-                                 pin_memory=True)
+    train_dataloader = DataLoader(
+        datasets["train"], batch_size=32, shuffle=True, num_workers=8
+    )
+    test_dataloader = DataLoader(
+        datasets["val"], batch_size=32, shuffle=True, num_workers=8, pin_memory=True
+    )
 
-    return {'train': train_dataloader, 'val': test_dataloader}
+    return {"train": train_dataloader, "val": test_dataloader}
 
 
-def train_model(model: nn.Module,
-                dataloaders: Dict[str, DataLoader],
-                criterion: nn.Module,
-                optimizer: optim.Optimizer,
-                num_epochs: int = 25) -> Tuple[nn.Module, List[float]]:
+def train_model(
+    model: nn.Module,
+    dataloaders: Dict[str, DataLoader],
+    criterion: nn.Module,
+    optimizer: optim.Optimizer,
+    num_epochs: int = 25,
+) -> Tuple[nn.Module, List[float]]:
     """ Train the provided model. """
     since = time.time()
 
@@ -61,12 +59,12 @@ def train_model(model: nn.Module,
     device = get_device()
 
     for epoch in range(num_epochs):
-        logging.info('Epoch {}/{}'.format(epoch, num_epochs - 1))
-        logging.info('-' * 10)
+        logging.info("Epoch {}/{}".format(epoch, num_epochs - 1))
+        logging.info("-" * 10)
 
         # Each epoch has a training and validation phase
-        for phase in ['train', 'val']:
-            if phase == 'train':
+        for phase in ["train", "val"]:
+            if phase == "train":
                 model.train()  # Set model to training mode
             else:
                 model.eval()  # Set model to evaluate mode
@@ -84,13 +82,13 @@ def train_model(model: nn.Module,
 
                 # forward
                 # track history if only in train
-                with torch.set_grad_enabled(phase == 'train'):
+                with torch.set_grad_enabled(phase == "train"):
                     outputs = model(inputs)
                     loss = criterion(outputs, labels)
                     _, preds = torch.max(outputs, 1)
 
                     # backward + optimize only if in training phase
-                    if phase == 'train':
+                    if phase == "train":
                         loss.backward()
                         optimizer.step()
 
@@ -99,25 +97,28 @@ def train_model(model: nn.Module,
                 running_corrects += torch.sum(preds == labels.data)
 
             epoch_loss = running_loss / len(dataloaders[phase].dataset)
-            epoch_acc = running_corrects.double() / len(
-                dataloaders[phase].dataset)
+            epoch_acc = running_corrects.double() / len(dataloaders[phase].dataset)
 
-            logging.info('{} Loss: {:.4f} Acc: {:.4f}'.format(
-                phase, epoch_loss, epoch_acc))
+            logging.info(
+                "{} Loss: {:.4f} Acc: {:.4f}".format(phase, epoch_loss, epoch_acc)
+            )
 
             # deep copy the model
-            if phase == 'val' and epoch_acc > best_acc:
+            if phase == "val" and epoch_acc > best_acc:
                 best_acc = epoch_acc
                 best_model_wts = copy.deepcopy(model.state_dict())
-            if phase == 'val':
+            if phase == "val":
                 val_acc_history.append(epoch_acc)
 
         print()
 
     time_elapsed = time.time() - since
-    logging.info('Training complete in {:.0f}m {:.0f}s'.format(
-        time_elapsed // 60, time_elapsed % 60))
-    logging.info('Best val Acc: {:4f}'.format(best_acc))
+    logging.info(
+        "Training complete in {:.0f}m {:.0f}s".format(
+            time_elapsed // 60, time_elapsed % 60
+        )
+    )
+    logging.info("Best val Acc: {:4f}".format(best_acc))
 
     # load best model weights
     model.load_state_dict(best_model_wts)
@@ -141,28 +142,24 @@ def initialize_model(feature_extracting: bool) -> nn.Module:
 
 
 def main():
-    logging.info(f'Torch version: {torch.__version__}')
-    logging.info(f'Torchvision version: {torchvision.__version__}')
+    logging.info(f"Torch version: {torch.__version__}")
+    logging.info(f"Torchvision version: {torchvision.__version__}")
 
     set_random_seed(42)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-n',
-                        '--epochs',
-                        type=int,
-                        default=10,
-                        help='Number of epochs.')
-    parser.add_argument('-d',
-                        '--dataset-dir',
-                        type=str,
-                        help='Dataset directory.')
-    parser.add_argument('--feature-extracting',
-                        action='store_true',
-                        help='Whether use feature extraction.')
-    parser.add_argument('-c',
-                        '--checkpoint-dir',
-                        type=str,
-                        help='Checkpoint directory.')
+    parser.add_argument(
+        "-n", "--epochs", type=int, default=10, help="Number of epochs."
+    )
+    parser.add_argument("-d", "--dataset-dir", type=str, help="Dataset directory.")
+    parser.add_argument(
+        "--feature-extracting",
+        action="store_true",
+        help="Whether use feature extraction.",
+    )
+    parser.add_argument(
+        "-c", "--checkpoint-dir", type=str, help="Checkpoint directory."
+    )
     args = parser.parse_args()
 
     dataloaders = get_dataloaders(args.dataset_dir)
@@ -183,18 +180,16 @@ def main():
     optimizer_ft = optim.SGD(params_to_update, lr=0.001, momentum=0.9)
 
     # Train and evaluate
-    model, hist = train_model(model,
-                              dataloaders,
-                              criterion,
-                              optimizer_ft,
-                              num_epochs=args.epochs)
+    model, hist = train_model(
+        model, dataloaders, criterion, optimizer_ft, num_epochs=args.epochs
+    )
 
     if not os.path.isdir(args.checkpoint_dir):
         os.mkdir(args.checkpoint_dir)
-    ckpt_path = os.path.join(args.checkpoint_dir, 'resnet50.ckpt')
+    ckpt_path = os.path.join(args.checkpoint_dir, "resnet50.ckpt")
     logging.info(f"Saving trained model to {ckpt_path}")
-    torch.save({'state_dict': model.state_dict()}, ckpt_path)
+    torch.save({"state_dict": model.state_dict()}, ckpt_path)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

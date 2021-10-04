@@ -11,6 +11,7 @@ class GumiConfig:
     """
     For the meaning of these fields, please refer to model_runner.parser
     """
+
     dataset: Union[str, Dict[str, Dataset]] = "cifar10"
     arch: str = "resnet110"
 
@@ -53,7 +54,7 @@ class GumiConfig:
     gamma: float = 0.1
     momentum: float = 0.9
     weight_decay: float = 5e-4
-    gpu_id: str = '0'
+    gpu_id: str = "0"
     resume: str = ""
     resume_from_best: bool = False
     pretrained: bool = False

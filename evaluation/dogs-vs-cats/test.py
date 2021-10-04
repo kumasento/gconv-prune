@@ -20,22 +20,13 @@ logging.basicConfig(format=fmt, level=logging.DEBUG)
 def get_dataloader(dataset_dir: str) -> DataLoader:
     datasets = get_datasets(dataset_dir)
 
-    return DataLoader(datasets['test'],
-                      batch_size=32,
-                      shuffle=False,
-                      num_workers=8)
+    return DataLoader(datasets["test"], batch_size=32, shuffle=False, num_workers=8)
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-d',
-                        '--dataset-dir',
-                        type=str,
-                        help='Dataset directory.')
-    parser.add_argument('-c',
-                        '--checkpoint-path',
-                        type=str,
-                        help='Path to checkpoint.')
+    parser.add_argument("-d", "--dataset-dir", type=str, help="Dataset directory.")
+    parser.add_argument("-c", "--checkpoint-path", type=str, help="Path to checkpoint.")
     args = parser.parse_args()
 
     device = get_device()
@@ -60,15 +51,15 @@ def main():
     ids = np.arange(1, labels.shape[0] + 1)
 
     data = {
-        'id': ids,
-        'label': labels,
+        "id": ids,
+        "label": labels,
     }
 
     df = pd.DataFrame(data)
     print(df)
 
-    df.to_csv('result.csv', index=False)
+    df.to_csv("result.csv", index=False)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

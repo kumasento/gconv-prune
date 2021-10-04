@@ -20,11 +20,11 @@ IMAGENET_DIR = os.path.expandvars("$NAS_HOME/datasets/ILSVRC2012")
 
 class TestModelRunner(unittest.TestCase):
     """ """
+
     def test_ctor(self):
         """ CIFAR """
         parser = create_cli_parser()
-        args = parser.parse_args(
-            ["--dataset", "cifar10", "--dataset-dir", CIFAR_DIR])
+        args = parser.parse_args(["--dataset", "cifar10", "--dataset-dir", CIFAR_DIR])
         if os.path.isdir(CIFAR_DIR):
             ModelPruner(args)
 

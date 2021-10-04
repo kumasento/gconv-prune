@@ -48,10 +48,9 @@ parser.add_argument(
     default=False,
     help="Whether to skip file tune.",
 )
-parser.add_argument("--skip-validation",
-                    action="store_true",
-                    default=False,
-                    help="Skip all validation.")
+parser.add_argument(
+    "--skip-validation", action="store_true", default=False, help="Skip all validation."
+)
 parser.add_argument(
     "--condensenet",
     action="store_true",
@@ -76,10 +75,9 @@ parser.add_argument(
     default=False,
     help="Train from scratch in the post-pruning phase",
 )
-parser.add_argument("--manual-seed",
-                    default=None,
-                    type=int,
-                    help="Manual seed for reproducibility.")
+parser.add_argument(
+    "--manual-seed", default=None, type=int, help="Manual seed for reproducibility."
+)
 args = parser.parse_args()
 
 # CUDA
@@ -96,13 +94,11 @@ if args.manual_seed is not None:
     torch.backends.cudnn.benchmark = False
 
 
-def create_update_model_fn(arch,
-                           dataset,
-                           pretrained,
-                           resume,
-                           condensenet=False,
-                           apply_mask=False):
+def create_update_model_fn(
+    arch, dataset, pretrained, resume, condensenet=False, apply_mask=False
+):
     """ """
+
     def update_model(model):
         """ """
         if not resume:
@@ -183,13 +179,13 @@ def create_get_num_groups_fn(G=0, MCPG=0, group_cfg=None):
 
         elif MCPG > 0:
             if GroupConv2d.groupable(C, F, max_channels_per_group=MCPG):
-                G_ = GroupConv2d.get_num_groups(C,
-                                                F,
-                                                max_channels_per_group=MCPG)
+                G_ = GroupConv2d.get_num_groups(C, F, max_channels_per_group=MCPG)
             else:
                 logging.warn(
-                    "Module {} is not groupable under MCPG={}, set its G to 1".
-                    format(name, MCPG))
+                    "Module {} is not groupable under MCPG={}, set its G to 1".format(
+                        name, MCPG
+                    )
+                )
                 G_ = 1
 
         return G_
@@ -216,7 +212,8 @@ def main():
     model = model_pruner.load_model(
         update_model_fn=update_model_fn,
         update_state_dict_fn=create_update_state_dict_fn(
-            no_mask=not args.resume, condensenet=args.condensenet),
+            no_mask=not args.resume, condensenet=args.condensenet
+        ),
         fine_tune=args.fine_tune,
     )
     # evaluate the performance of the model in the beginning
@@ -244,9 +241,9 @@ def main():
     # run pruning (update the content of mask)
     logging.info("==> Pruning model ...")
     if not args.skip_prune:
-        get_num_groups = create_get_num_groups_fn(G=args.num_groups,
-                                                  MCPG=args.mcpg,
-                                                  group_cfg=args.group_cfg)
+        get_num_groups = create_get_num_groups_fn(
+            G=args.num_groups, MCPG=args.mcpg, group_cfg=args.group_cfg
+        )
 
         logging.debug("Pruning configuration:")
         logging.debug("PERM:        {}".format(args.perm))
@@ -282,9 +279,7 @@ def main():
         # reset weight parameters
         # TODO: refactorize
         for name, mod in model.named_modules():
-            if hasattr(
-                    mod,
-                    "weight") and len(mod.weight.shape) >= 2:  # re-initialize
+            if hasattr(mod, "weight") and len(mod.weight.shape) >= 2:  # re-initialize
                 torch.nn.init.kaiming_normal_(mod.weight, nonlinearity="relu")
                 # if hasattr(mod, 'G'):
                 #   mod.weight.data.mul_(mod.G)
@@ -298,8 +293,10 @@ def main():
             logging.info("==> Validating the fine-tuned pruned model ...")
             loss4, acc4 = model_pruner.validate(model)
             logging.info(
-                "==> Final validation accuracy of the pruned model: {:.2f}%".
-                format(acc4))
+                "==> Final validation accuracy of the pruned model: {:.2f}%".format(
+                    acc4
+                )
+            )
     else:
         logging.info("Fine-tuning has been skipped.")
 
@@ -311,17 +308,19 @@ def main():
     model = GroupExporter.export(model)
     if use_cuda:
         model.cuda()
-    logging.debug("Total params: {:.2f}M FLOPS: {:.2f}M".format(
-        model_utils.get_model_num_params(model),
-        utils.get_model_num_ops(model, args.dataset),
-    ))
+    logging.debug(
+        "Total params: {:.2f}M FLOPS: {:.2f}M".format(
+            model_utils.get_model_num_params(model),
+            utils.get_model_num_ops(model, args.dataset),
+        )
+    )
 
     if not args.skip_validation:
         logging.info("==> Validating the exported pruned model ...")
         loss5, acc5 = model_pruner.validate(model)
         logging.info(
-            "==> Final validation accuracy of the exported model: {:.2f}%".
-            format(acc5))
+            "==> Final validation accuracy of the exported model: {:.2f}%".format(acc5)
+        )
 
 
 if __name__ == "__main__":

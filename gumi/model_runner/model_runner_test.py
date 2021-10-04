@@ -13,11 +13,11 @@ IMAGENET_DIR = os.path.expandvars("$NAS_HOME/datasets/ILSVRC2012")
 
 class TestModelRunner(unittest.TestCase):
     """ """
+
     def test_ctor(self):
         """ CIFAR """
         parser = create_cli_parser()
-        args = parser.parse_args(
-            ["--dataset", "cifar10", "--dataset-dir", CIFAR_DIR])
+        args = parser.parse_args(["--dataset", "cifar10", "--dataset-dir", CIFAR_DIR])
         if os.path.isdir(CIFAR_DIR):
             ModelRunner(args)
 
@@ -33,10 +33,9 @@ class TestModelRunner(unittest.TestCase):
         """ Test the load_model function. """
         # CIFAR-10 models
         parser = create_cli_parser()
-        args = parser.parse_args([
-            "-a", "densenet40", "--dataset", "cifar10", "--dataset-dir",
-            CIFAR_DIR
-        ])
+        args = parser.parse_args(
+            ["-a", "densenet40", "--dataset", "cifar10", "--dataset-dir", CIFAR_DIR]
+        )
         if os.path.isdir(CIFAR_DIR) and torch.cuda.is_available():
             model_runner = ModelRunner(args)
             model_runner.load_model()

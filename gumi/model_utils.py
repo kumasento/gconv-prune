@@ -11,8 +11,7 @@ import torch
 import torch.nn as nn
 from thop import profile
 
-from gumi.ops import (GroupConv2d, MaskConv2d, MMPointwiseConv2d,
-                      SparseGroupConv2d)
+from gumi.ops import GroupConv2d, MaskConv2d, MMPointwiseConv2d, SparseGroupConv2d
 
 __all__ = ["conv3x3", "conv1x1", "is_conv2d"]
 
@@ -49,11 +48,9 @@ def _get_indices(indices, channels, groups=None):
             perm = perm.T.reshape(channels)
             return perm.tolist()
 
-        raise ValueError(
-            "Indices pattern {} cannot be recognised.".format(indices))
+        raise ValueError("Indices pattern {} cannot be recognised.".format(indices))
 
-    raise TypeError("Cannot recognise type of indices: {}".format(
-        type(indices)))
+    raise TypeError("Cannot recognise type of indices: {}".format(type(indices)))
 
 
 def get_perm_indices(ind_type, in_channels, out_channels, groups=0):
@@ -77,33 +74,31 @@ def get_perm_indices(ind_type, in_channels, out_channels, groups=0):
     return ind_in, ind_out
 
 
-def get_conv2d_fn(in_planes,
-                  out_planes,
-                  groups=1,
-                  max_channels_per_group=None,
-                  ind_type=None,
-                  mask=False,
-                  **kwargs):
+def get_conv2d_fn(
+    in_planes,
+    out_planes,
+    groups=1,
+    max_channels_per_group=None,
+    ind_type=None,
+    mask=False,
+    **kwargs
+):
     """ Decide which Conv2d function to use. This function will only
     be utilized when doing """
     if mask or not GroupConv2d.groupable(
-            in_planes,
-            out_planes,
-            groups=groups,
-            max_channels_per_group=max_channels_per_group,
+        in_planes,
+        out_planes,
+        groups=groups,
+        max_channels_per_group=max_channels_per_group,
     ):  # if mask specified
         return functools.partial(MaskConv2d, in_planes, out_planes)
 
     # now we know Conv2d is groupable
-    G = GroupConv2d.get_num_groups(in_planes,
-                                   out_planes,
-                                   max_channels_per_group,
-                                   groups=groups)
+    G = GroupConv2d.get_num_groups(
+        in_planes, out_planes, max_channels_per_group, groups=groups
+    )
     # maybe update the indices
-    ind_in, ind_out = get_perm_indices(ind_type,
-                                       in_planes,
-                                       out_planes,
-                                       groups=G)
+    ind_in, ind_out = get_perm_indices(ind_type, in_planes, out_planes, groups=G)
 
     # all group parameters are wrapped
     return functools.partial(
@@ -119,17 +114,16 @@ def get_conv2d_fn(in_planes,
 
 def conv3x3(in_planes, out_planes, stride=1, bias=False, **kwargs):
     """ 3x3 convolution with padding, support mask and group """
-    return get_conv2d_fn(in_planes, out_planes, **kwargs)(kernel_size=3,
-                                                          stride=stride,
-                                                          padding=1,
-                                                          bias=bias)
+    return get_conv2d_fn(in_planes, out_planes, **kwargs)(
+        kernel_size=3, stride=stride, padding=1, bias=bias
+    )
 
 
 def conv1x1(in_planes, out_planes, stride=1, bias=False, **kwargs):
     """ 1x1 convolution """
-    return get_conv2d_fn(in_planes, out_planes, **kwargs)(kernel_size=1,
-                                                          stride=stride,
-                                                          bias=bias)
+    return get_conv2d_fn(in_planes, out_planes, **kwargs)(
+        kernel_size=1, stride=stride, bias=bias
+    )
 
 
 def get_model_num_params(model):
@@ -200,11 +194,9 @@ def get_num_conv2d_layers(model, exclude_downsample=True, include_linear=True):
 def load_checkpoint(checkpoint, model):
     """ Load checkpoint content from the given path. """
     if not os.path.isfile(checkpoint):
-        raise RuntimeError(
-            "Checkpoint should be a valid file: {}".format(checkpoint))
+        raise RuntimeError("Checkpoint should be a valid file: {}".format(checkpoint))
     if not isinstance(model, nn.Module):
-        raise TypeError("model should be a valid nn.Module, got {}".format(
-            type(model)))
+        raise TypeError("model should be a valid nn.Module, got {}".format(type(model)))
 
     ckpt = torch.load(checkpoint)
     model.load_state_dict(ckpt["state_dict"])
