@@ -18,7 +18,7 @@ logging.basicConfig(format=fmt, level=logging.DEBUG)
 
 
 def patch_dataset(cfg: GumiConfig) -> GumiConfig:
-    if cfg.dataset != 'dogs-vs-cats':
+    if cfg.dataset != "dogs-vs-cats":
         return cfg
     cfg.dataset = get_datasets(cfg.dataset_dir)
     return cfg
@@ -57,7 +57,7 @@ def main():
     cfg = GumiConfig(**vars(args))
     cfg = patch_dataset(cfg)
 
-    logging.info('Initializing ModelPruner ...')
+    logging.info("==> Initializing ModelPruner")
     model_pruner = ModelPruner(cfg)
 
     model = model_pruner.load_model(update_state_dict_fn=update_state_dict)
@@ -69,7 +69,8 @@ def main():
 
     logging.info("==> Pruning model ...")
     get_num_groups = group_utils.create_get_num_groups_fn(
-        G=cfg.num_groups, MCPG=cfg.mcpg, group_cfg=cfg.group_cfg)
+        G=cfg.num_groups, MCPG=cfg.mcpg, group_cfg=cfg.group_cfg
+    )
 
     model_pruner.prune(
         model,
@@ -87,15 +88,16 @@ def main():
 
     logging.info("==> Exporting the model ...")
     model = GroupExporter.export(model)
-    logging.debug("Total params: {:.2f}M FLOPS: {:.2f}M".format(
-        model_utils.get_model_num_params(model),
-        utils.get_model_num_ops(model, args.dataset),
-    ))
+    logging.debug(
+        "Total params: {:.2f}M FLOPS: {:.2f}M".format(
+            model_utils.get_model_num_params(model),
+            utils.get_model_num_ops(model, args.dataset),
+        )
+    )
 
     logging.info("==> Saving exported model ...")
-    torch.save({'state_dict': model.state_dict()},
-               os.path.join(cfg.checkpoint, 'pruned.pth.tar'))
+    torch.save(model, os.path.join(cfg.checkpoint, "pruned.pth.tar"))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
